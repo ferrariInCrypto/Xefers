@@ -3,20 +3,20 @@ pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
 
-contract LinkContract {
-    // A Zklinks contract represents a unique link to be tracked (identified by contract url)
+contract XefersContract {
+    // A ZkXeferss contract represents a unique Xefers to be tracked (identified by contract url)
 
     uint256 public referralCount;
     mapping(address => bool) public referred;
 
-    struct LinkMetadata {
+    struct XefersMetadata {
         string title;
         string redirectUrl;
         address owner;
         uint256 referralReward;
     }
 
-    LinkMetadata public linkMetadata;
+    XefersMetadata public XefersMetadata;
 
     event RefferalSuccess(address indexed referrer, address indexed referral, string indexed redirectUrl);
 
@@ -26,7 +26,7 @@ contract LinkContract {
         string memory _redirectUrl
     ) {
         referralCount = 0;
-        linkMetadata = LinkMetadata(
+        XefersMetadata = XefersMetadata(
             _title,
             _redirectUrl,
             msg.sender,
@@ -38,7 +38,7 @@ contract LinkContract {
         require(!referred[msg.sender], "User already referred");
         referred[msg.sender] = true;
         referralCount += 1;
-        uint256 referralReward = linkMetadata.referralReward;
+        uint256 referralReward = XefersMetadata.referralReward;
         if (referralReward > 0) {
             // Ensure balance is sufficient
             require(
@@ -49,11 +49,11 @@ contract LinkContract {
             payable(msg.sender).transfer(referralReward);
         }
 
-        emit RefferalSuccess(linkMetadata.owner, msg.sender, linkMetadata.redirectUrl);
+        emit RefferalSuccess(XefersMetadata.owner, msg.sender, XefersMetadata.redirectUrl);
     }
 
-    function getMetadata() external view returns (LinkMetadata memory) {
-        return linkMetadata;
+    function getMetadata() external view returns (XefersMetadata memory) {
+        return XefersMetadata;
     }
 
     function isReffered(address _address) external view returns (bool) {
@@ -62,36 +62,36 @@ contract LinkContract {
 
     function checkOwner() private view {
         require(
-            msg.sender == linkMetadata.owner,
-            "Only the link owner can call this method"
+            msg.sender == XefersMetadata.owner,
+            "Only the Xefers owner can call this method"
         );
     }
 
     function setRedirectUrl(string memory _redirectUrl) external {
         checkOwner();
-        linkMetadata.redirectUrl = _redirectUrl;
+        XefersMetadata.redirectUrl = _redirectUrl;
     }
 
     function setReferralReward(uint256 _referralReward) external {
         checkOwner();
-        linkMetadata.referralReward = _referralReward;
+        XefersMetadata.referralReward = _referralReward;
     }
 
     function setTitle(string memory _title) external {
         checkOwner();
-        linkMetadata.title = _title;
+        XefersMetadata.title = _title;
     }
 
     function getTitle() external view returns (string memory) {
-        return linkMetadata.title;
+        return XefersMetadata.title;
     }
 
     function getRedirectUrl() external view returns (string memory) {
-        return linkMetadata.redirectUrl;
+        return XefersMetadata.redirectUrl;
     }
 
     function getOwner() external view returns (address) {
-        return linkMetadata.owner;
+        return XefersMetadata.owner;
     }
 
     function getReferralCount() external view returns (uint256) {
@@ -99,6 +99,6 @@ contract LinkContract {
     }
 
     function getReferralReward() external view returns (uint256) {
-        return linkMetadata.referralReward;
+        return XefersMetadata.referralReward;
     }
 }
