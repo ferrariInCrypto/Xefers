@@ -63,11 +63,11 @@ export default function OwnerLinks({ account, address, activeChain }) {
                         }}
                     >
                         <h2>
-                            Title: {data.title}</h2>
+                            Campaign Title: {data.title}</h2>
                         <p>
-                            Redirect URL: {data.redirectUrl}<br />
+                             URL: {data.redirectUrl}<br />
                             {network && <span>Network: {network}</span>}<br />
-                            {!isNaN(data.createdAt) && <span>Created: {getDateStringFromTimestamp(data.createdAt, true)}</span>}
+                            {!isNaN(data.createdAt) && <span>Date: {getDateStringFromTimestamp(data.createdAt, true)}</span>}
                         </p>
                     </div>
                 )

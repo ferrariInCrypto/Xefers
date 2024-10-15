@@ -1,26 +1,24 @@
 import React, { useState } from "react";
 import {
-  Button,
+
   Input,
   Row,
   Col,
-  Radio,
   Steps,
   Card,
   Checkbox,
   Result,
 } from "antd";
-
 import {
   redirectUrl,
-  ipfsUrl,
   getExplorerUrl,
   toHexString,
   isValidUrl,
 } from "../util";
 import { CREATE_STEPS, EXAMPLE_FORM } from "../util/constants";
-import { deployContract } from "../contract/xefers";
+import { deployContract } from "../contract/Contract";
 import { createLink } from "../util/polybase";
+import { SmileOutlined } from "@ant-design/icons";
 
 function CreateRequest({ activeChain, account }) {
   const [data, setData] = useState({ reward: 0, rewardChecked: false });
@@ -52,7 +50,7 @@ function CreateRequest({ activeChain, account }) {
     // Make sure current network is correct based on current metamask network.
     if (targetChainId !== currentNetwork) {
       setError(
-        `Please switch to the ${activeChain.name} (${targetChainId}) network in metamask to create this Xefers request.`
+        `Please switch to the ${activeChain.name} (${targetChainId}) network in metamask to create this xefers Link request.`
       );
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
@@ -62,7 +60,9 @@ function CreateRequest({ activeChain, account }) {
     }
 
     if (!isValidData) {
-      setError("Please provide a Xefers page title and valid redirect URL.");
+      setError(
+        "Please provide a xefers Link page title and valid redirect URL."
+      );
       return;
     }
 
@@ -80,18 +80,18 @@ function CreateRequest({ activeChain, account }) {
           data.reward,
           data.redirectUrl
         );
-        // res["contract"] = contract;
+   
         res["address"] = contract.address;
         res["redirectUrl"] = redirectUrl(contract.address);
 
-        // 3) return shareable url.
+     
         res["contractUrl"] = getExplorerUrl(activeChain, res.address);
       }
 
       // Result rendered after successful doc upload + contract creation.
       setResult(res);
 
-      const polyResult = await createLink({
+      const result = await createLink({
         id: res.address || new Date().getTime().toString(),
         title: data.title,
         redirectUrl: data.redirectUrl,
@@ -99,22 +99,16 @@ function CreateRequest({ activeChain, account }) {
         owner: account,
         chainId: activeChain.id,
       });
+
+      console.log(result)
     } catch (e) {
-      console.error("error creating Xefers", e);
+      console.error("error creating xefers Link", e);
       setError(e.message || e.toString());
     } finally {
       setLoading(false);
     }
   };
 
-  const getStep = () => {
-    if (!!result) {
-      return 2;
-    } else if (isValidData) {
-      return 1;
-    }
-    return 0;
-  };
 
   const setDemoData = (e) => {
     e.preventDefault();
@@ -124,20 +118,29 @@ function CreateRequest({ activeChain, account }) {
   if (result) {
     return (
       <Result
-        status="success"
-        title="Created Xefers request!"
-        subTitle="Your Xefers request has been created and is ready to be shared."
+        className="font-Ubuntu"
+        icon={<SmileOutlined />}
+        title="Your Link request"
+        subTitle="Your request for a Xefers link has been generated and is prepared for sharing."
         extra={[
-          <Button type="secondary" key="contract">
-            <a href={result.contractUrl} target="_blank">
+          <button className="bg-none text-[#283046] py-2 px-4 rounded-md border border-1 border-[#283046]  transition-all duration-300 ease-in-out">
+            <a
+              className="hover:text-gray-500"
+              href={result.contractUrl}
+              target="_blank"
+            >
               View created contract
             </a>
-          </Button>,
-          <Button type="primary" key="share">
-            <a href={result.redirectUrl} target="_blank">
+          </button>,
+          <button className="bg-none text-[#283046] py-2 px-4 rounded-md border border-1 border-[#283046]  transition-all duration-300 ease-in-out">
+            <a
+              className="hover:text-gray-500"
+              href={result.redirectUrl}
+              target="_blank"
+            >
               Share this url
             </a>
-          </Button>,
+          </button>,
         ]}
       />
     );
@@ -146,29 +149,31 @@ function CreateRequest({ activeChain, account }) {
   return (
     <div>
       <Row>
-        <Col span={16}>
-          <Card className="create-form white boxed" title="Create a new Xefers">
-            <a href="#" onClick={setDemoData}>
-              Set demo data
-            </a>
+        <Col span={24}>
+          <Card
+            className="create-form font-Ubuntu white boxed"
+            title="Start your own xefer campaign"
+          >
             <br />
-            <h3 className="vertical-margin">Link title:</h3>
+            <h1 className="vertical-margin">Set your Campaign title:</h1>
             <Input
-              placeholder="This title will be displayed on the Xefers redirect page."
+              placeholder="The title to your campaign"
               value={data.title}
-              prefix="Title:"
+              className="font-Ubuntu"
               onChange={(e) => updateData("title", e.target.value)}
             />
             <br />
             <br />
             <p>
-              When the link is visited, the visited will be prompted to sign a
-              message with their address and be redirected to the url below.
+              <h1 className="vertical-margin">
+                Visitors will sign a message with their address and be
+                redirected to the URL below.
+              </h1>
             </p>
             <Input
-              placeholder="Redirect URL (e.g. https://example.com)"
+              className="font-Ubuntu"
+              placeholder="redirect URL (e.g. https://sunpump.meme)"
               value={data.redirectUrl}
-              prefix="Redirect URL:"
               onChange={(e) => updateData("redirectUrl", e.target.value)}
             />
             <br />
@@ -177,31 +182,41 @@ function CreateRequest({ activeChain, account }) {
               checked={data.rewardChecked}
               onChange={(e) => updateData("rewardChecked", e.target.checked)}
             />
-            &nbsp;Reward the referee when the link is used (once per address)
+            &nbsp;The referrer will be rewarded when the link is used, with one
+            reward per address.
             <br />
             {data.rewardChecked && (
-              <div>
-                {" "}
+              <div className="font-Ubuntu mt-4">
                 <Input
                   placeholder="Reward amount (in ETH)"
                   value={data.reward}
                   prefix="Reward:"
                   onChange={(e) => updateData("reward", e.target.value)}
                 />
-                Note you must fund the contract after deployment for the
-                contract to pay out rewards.
+                <p className="mt-2">
+                  Make sure to fund the contract after deployment for it to
+                  distribute rewards.
+                </p>
               </div>
             )}
             <br />
-            <button
-              className="bg-[#1d2132] text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out"
-              onClick={create}
-            >
-              Create Link Contract
-            </button>
-            {!error && !result && loading && (
-              <span>&nbsp;Note this may take a few moments.</span>
-            )}
+            <div className="flex justify-start space-x-4  items-center">
+              <button
+                className="bg-[#1d2132] text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out"
+                onClick={create}
+              >
+                {!error && !result && loading ? "Waiting" : "Create  Contract"}
+              </button>
+
+              <button
+                className="bg-none text-[#283046] py-2 px-4 rounded-md border border-1 border-[#283046]  transition-all duration-300 ease-in-out"
+                href="#"
+                onClick={setDemoData}
+              >
+                Set demo data
+              </button>
+            </div>
+
             <br />
             <br />
             {error && (
@@ -211,15 +226,15 @@ function CreateRequest({ activeChain, account }) {
             )}
           </Card>
         </Col>
-        <Col span={1}></Col>
-        <Col span={7}>
-          <div className="white boxed">
+      </Row>
+      <Row>
+        <Col span={24}>
+          <div className="white boxed   font-Ubuntu">
             <Steps
-              className="standard-margin"
-              direction="vertical"
+              className="font-Ubuntu "
               size="small"
+              current={1}
               items={CREATE_STEPS}
-              current={getStep()}
             />
           </div>
         </Col>
