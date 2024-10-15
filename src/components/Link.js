@@ -1,21 +1,17 @@
-import { ArrowLeftOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { InfoCircleOutlined } from "@ant-design/icons";
 import { Button, Card, Modal } from "antd";
-import { ethers } from "ethers";
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import {
   getMetadata,
-  getRedirectUrl,
-  getTitle,
   refer,
-} from "../contract/linkContract";
+} from "../contract/Contract";
 import { getRpcError } from "../util";
-import { APP_NAME } from "../util/constants";
-import { sendPush } from "../util/notifications";
-import { About } from "./About";
+
 
 // This page should page a contractAddress path parameter enable a web3 transaction to credit a user with a link referral,
 // and then redirect to url stored in state
+
 export default function LinkRedirect({ activeChain, account, provider }) {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = useState();
@@ -33,12 +29,7 @@ export default function LinkRedirect({ activeChain, account, provider }) {
     try {
       const result = await refer(contractAddress);
       console.log(result);
-      // Redirect and referral successful.
 
-      // Add notification
-      await sendPush(data.owner, account, redirectUrl);
-
-      // Send to page
       setSuccess(true);
     } catch (e) {
       console.log(e);
@@ -86,7 +77,7 @@ export default function LinkRedirect({ activeChain, account, provider }) {
   }, [provider, account]);
 
   if (loading) {
-    return <div>Waiting for user interaction...</div>;
+    return <div>Confirm the transaction in wallet</div>;
   }
 
   const { redirectUrl, title, owner, reward } = data;
@@ -113,30 +104,33 @@ export default function LinkRedirect({ activeChain, account, provider }) {
     );
   }
 
-  const openAbout = () => {
-    setShowAbout(true);
-  };
+
 
   const cardTitle = (
-    <span>
+    <span className="flex items-center justify-between">
       Credit your referral&nbsp;
-      <InfoCircleOutlined onClick={openAbout} />
+      <InfoCircleOutlined  />
     </span>
   );
 
   return (
     <div>
-      <Card title={cardTitle}>
-        {title && <p>Title: {title}</p>}
-        {walletError && <p>This is a {APP_NAME} referral page.</p>}
+      <Card className="font-Ubuntu text-md"  title={cardTitle}>
+
+        <div className=" text-md">
+        {title && <p><b>Title:</b> {title}</p>}
+        {walletError && <p>This is a xefers referral page.</p>}
+
+        {redirectUrl && <div className="flex justify-start items-center space-x-2"><p><b>Redirect URL:</b></p> <p className=" underline underline-offset-1"> {redirectUrl}</p></div>}
         {!error && (
-          <p>
+          <p className=" text-gray-500">
             You will be redirected to the following page when you click the
             button below:
           </p>
         )}
-        {redirectUrl && <p>Redirect URL: {redirectUrl}</p>}
         {error && <div className="error-text">{error}</div>}
+        <br/>
+        </div>
         {!success && (
           <button
             disabled={!redirectUrl || !account || error}
@@ -150,31 +144,22 @@ export default function LinkRedirect({ activeChain, account, provider }) {
         )}
       </Card>
 
-      <Modal
-        title="About"
-        open={showAbout}
-        onOk={() => setShowAbout(false)}
-        cancelButtonProps={{ style: { display: "none" } }}
-        onCancel={() => setShowAbout(false)}
-      >
-        <About />
-      </Modal>
 
       <Modal
-        title={<span className="success-text">Referral successful</span>}
+        title={<span className="secondary-text">Referral successful</span>}
         open={success}
         okButtonProps={{ style: { display: "none" } }}
         cancelButtonProps={{ style: { display: "none" } }}
         onCancel={() => setSuccess(false)}
       >
         <hr />
-        <h3>Proceed to page below</h3>
-        <a href={fullRedirectUrl} rel="noreferrer">
+        <br/>
+        <a className="underline hover:text-gray-500" href={fullRedirectUrl} rel="noreferrer">
           {fullRedirectUrl}
         </a>
         <br />
         <br />
-        <p>Thanks for using {APP_NAME}!</p>
+        <p className=" text-gray-500">By clicking on the link you will be redirected to following page:</p>
       </Modal>
     </div>
   );

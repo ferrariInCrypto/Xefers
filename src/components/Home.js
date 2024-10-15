@@ -1,15 +1,17 @@
 import React from "react";
-import { Row, Col, Button } from "antd";
-import logo from "../assets/logo_3_2.png";
+import { Row, Col } from "antd";
 import { useNavigate } from "react-router-dom";
 import { APP_DESC } from "../util/constants";
-import { ArrowRightOutlined, CheckCircleTwoTone } from "@ant-design/icons";
+import {   } from "@ant-design/icons";
 
 const CHECKLIST_ITEMS = [
-  "Secure, Decentralized Click Tracking on L2 Networks",
-  "Hassle-Free Referral Tracking with Zero-Knowledge Proofs",
-  "No vendor agreements required",
+  "1. Decentralized referral tracking on the BTTC network with smart contract-based reward distribution",
+  "2. Zero-knowledge proof implementation for user privacy, ensuring no personal data is exposed",
+  "3. Transparent and immutable reward distribution system to prevent fraud and manipulation",
+  "4. Simple and user-friendly interface for creating and managing referral campaigns",
+  "5. Scalable architecture with low transaction fees and high throughput for efficient performance"
 ];
+
 
 function Home(props) {
   const navigate = useNavigate();
@@ -19,25 +21,20 @@ function Home(props) {
   };
 
   return (
-    <div className="hero-section">
+    <div className="hero-section ">
       <Row>
-        <Col span={12}>
+        <Col span={24}>
           <div className="hero-slogan-section">
-            <div className="hero-slogan">
-              <p>
+            <div className="hero-slogan text-5xl font-Ubuntu">
+              <h1>
                 {APP_DESC}
-                 {/* for&nbsp; */}
-                {/* <ReactRotatingText
-                  items={["businesses", "individuals", "everyone"]}
-                /> */}
-                .
-              </p>
+              </h1>
             </div>
-            {/* // "#eb2f96" */}
+         
             {CHECKLIST_ITEMS.map((item, i) => {
               return (
-                <p key={i}>
-                  <CheckCircleTwoTone twoToneColor="#00aa00" />
+                <p className="font-Ubuntu text-gray-600  text-xl" key={i}>
+               
                   &nbsp;
                   {item}
                 </p>
@@ -45,14 +42,12 @@ function Home(props) {
             })}
             <br />
 
-            <Button type="primary" size="large" onClick={goToCreate}>
-              Create a new Xefers <ArrowRightOutlined/>
-            </Button>
+            <button  className="bg-[#1d2132] text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out" onClick={goToCreate}>
+              Create a Link Campaign  
+            </button>
           </div>
         </Col>
-        <Col span={12}>
-          <img src={logo} className="hero-image" />
-        </Col>
+       
       </Row>
     </div>
   );

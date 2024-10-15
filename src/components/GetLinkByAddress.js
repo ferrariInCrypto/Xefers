@@ -2,7 +2,6 @@ import { Card } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { getExplorerUrl, getDateStringFromTimestamp } from '../util'
 import { getLinksForOwner } from '../util/polybase'
-import logo from '../assets/logo.png'
 import { CHAIN_OPTIONS } from '../util/constants'
 
 export default function OwnerLinks({ account, address, activeChain }) {
@@ -34,22 +33,22 @@ export default function OwnerLinks({ account, address, activeChain }) {
         }
     }
 
-    const title = <span>Owner: {account}</span>
+    const title = <span>Campaign History of : {account}</span>
 
     return (<div>
         <div className='centered'>
-            {logo && <img src={logo} alt='logo' style={{ textAlign: 'center', height: '100px', margin: '20px' }} />}
-            <h2>Your links</h2>
+            
+        
+
         </div>
-        <Card
+
+        <Card className='font-Ubuntu'
             title={title}>
             {loading && <p>Loading...</p>}
             {!loading && links?.length === 0 && <p>No links found.</p>}
             {error && <p className='error-text'>{error}</p>}
-            {links?.length > 0 && <p>Click on a link to view it on the blockchain explorer.
-                <br />Powered by <a href='https://polybase.com' target='_blank'>Polybase</a>
-            </p>}
-            {links?.length > 0 && <p><b>Found ({links?.length || 0})</b></p>}
+
+            {links?.length > 0 && <p><b>Total : ({links?.length || 0})</b></p>}
             {links?.map((link, i) => {
                 const { data } = link
                 const explorerUrl = getExplorerUrl(activeChain, data.id)

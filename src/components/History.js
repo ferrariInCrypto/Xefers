@@ -1,28 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { Button, Input, Table } from "antd";
-import { APP_NAME } from "../util/constants";
-import { getTransactions } from "../util/covalent";
+import { Input, Table } from "antd";
+import { getTransactions } from "../util/covalentApi";
 import { abbreviate, col, getDateStringFromTimestamp } from "../util";
 import { LineChart } from "react-chartkick";
 
 const COLUMNS = [
-  col("tx_hash", row => abbreviate(row || '', 6)),
+  col("tx_hash", (row) => abbreviate(row || "", 6)),
   col("from_address"),
   col("value"),
   col("gas_spent"),
-  col("block_signed_at", row => getDateStringFromTimestamp(row, true)),
+  col("block_signed_at", (row) => getDateStringFromTimestamp(row, true)),
 ];
 
 function History({ activeChain }) {
-  const [address, setAddress] = useState(
-    "0xAE985d249B125c7b2CCc000B1D6ea250e1204E41"
-  );
+  const [address, setAddress] = useState(sessionStorage.getItem("address"));
   const [loading, setLoading] = useState();
   const [data, setData] = useState();
 
   useEffect(() => {
-    setData(undefined)
-  }, [activeChain])
+    setData(undefined);
+  }, [activeChain]);
 
   const fetchHistory = async () => {
     if (!address || !activeChain) {
@@ -34,6 +31,7 @@ function History({ activeChain }) {
     try {
       const res = await getTransactions(activeChain.id, address);
       setData(res.data.data.items);
+      console.log(data);
     } catch (e) {
       console.error(e);
       alert("error getting signdata" + e);
@@ -45,22 +43,39 @@ function History({ activeChain }) {
   return (
     <div>
       <p>
-        This page can be used to lookup {APP_NAME} transactions against a given&nbsp;
-        {activeChain.name} address.
+      This page allows you to search for Xefers transactions associated with a
+        &nbsp;
+        {activeChain.name} address .
       </p>
       <Input
         value={address}
+        className="hover:border hover:border-1 hover:border-gray-600"
         onChange={(e) => setAddress(e.target.value)}
-        prefix="Address"
+        prefix="Search Address :"
       ></Input>
-      <br />
-      <p></p>
 
+      <br />
+ 
       &nbsp;
-      <Button onClick={fetchHistory} disabled={loading} loading={loading}>
+      <button
+        className="bg-[#1d2132] mt-4 text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out"
+        onClick={fetchHistory}
+        disabled={loading}
+        loading={loading}
+      >
         View referrals
-      </Button>&nbsp;
-      {address && data && <a href={`${activeChain.url}address/${address}`} target="_blank" rel="noreferrer">View on {activeChain.name}</a>}
+      </button>
+      <br/>
+      &nbsp;
+      {address && data && (
+        <a
+          href={`${activeChain.url}address/${address}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          View on {activeChain.name}
+        </a>
+      )}
       <br />
       <hr />
       {data && (
@@ -69,11 +84,14 @@ function History({ activeChain }) {
           {/* Create a line chart grouped by the day */}
           <LineChart
             data={data.reduce((acc, row) => {
-              const date = getDateStringFromTimestamp(row.block_signed_at, false);
+              const date = getDateStringFromTimestamp(
+                row.block_signed_at,
+                false
+              );
               if (!acc[date]) {
                 acc[date] = 0;
               }
-              acc[date] += 1
+              acc[date] += 1;
               return acc;
             }, {})}
             xtitle="Date"
@@ -95,10 +113,10 @@ function History({ activeChain }) {
                     "_blank"
                   );
                 }, // click row
-                onDoubleClick: (event) => { }, // double click row
-                onContextMenu: (event) => { }, // right button click row
-                onMouseEnter: (event) => { }, // mouse enter row
-                onMouseLeave: (event) => { }, // mouse leave row
+                onDoubleClick: (event) => {}, // double click row
+                onContextMenu: (event) => {}, // right button click row
+                onMouseEnter: (event) => {}, // mouse enter row
+                onMouseLeave: (event) => {}, // mouse leave row
               };
             }}
           />

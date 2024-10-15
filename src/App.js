@@ -1,62 +1,50 @@
 import React, { useEffect, useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import { Layout, Menu, Select, Badge, Modal } from "antd";
-import { BellTwoTone } from "@ant-design/icons";
+import { Layout, Select, Modal } from "antd";
+import xefersLogo from "./assets/xefersLogo.png";
 
 import CreateRequest from "./components/CreateRequest";
 import History from "./components/History";
 import Home from "./components/Home";
-import logo from "./assets/logo.png";
-import LinkRedirect from "./components/LinkRedirect";
-import OwnerLinks from "./components/OwnerLinks";
-import Notification from "./components/Notification";
-import { About } from "./components/About";
+import Link from "./components/Link";
+import GetLinkByAddress from "./components/GetLinkByAddress";
 
-import { APP_DESC, APP_NAME, CHAIN_OPTIONS, DEFAULT_CHAIN } from "./util/constants";
+
+
+import {
+
+  CHAIN_OPTIONS,
+  DEFAULT_CHAIN,
+} from "./util/constants";
 import { capitalize, toHexString } from "./util";
-import { fetchNotifications } from "./util/notifications";
 
-import './App.css';
 
-const { Option } = Select;
+import "./App.css";
+
 const { Header, Content, Footer } = Layout;
+const { Option } = Select;
 
 function App() {
   const [account, setAccount] = useState();
   const [loading, setLoading] = useState(false);
-  const [notifications, setNotifications] = useState([]);
   const [activeChain, setActiveChain] = useState(DEFAULT_CHAIN);
-  const [showNotifications, setShowNotifications] = useState(false);
+
 
   const navigate = useNavigate();
   const path = window.location.pathname;
 
   const isRedirect = path.startsWith("/link/");
 
-  useEffect(() => {
-    if (account) {
-      getNotifications();
-    }
-  }, [account]);
-
-  const getNotifications = async () => {
-    try {
-      const data = await fetchNotifications(account);
-      setNotifications(data);
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const changeNetwork = async (chainId) => {
     const e = window.ethereum;
     if (!e) {
-      alert('Metamask must be connected to use the app');
+      alert("Metamask must be connected to use the app");
       return;
     }
 
     await window.ethereum.request({
-      method: 'wallet_switchEthereumChain',
+      method: "wallet_switchEthereumChain",
       params: [{ chainId }],
     });
   };
@@ -71,12 +59,13 @@ function App() {
     setLoading(true);
     const e = window.ethereum;
     if (!e) {
-      alert('Metamask must be connected to use the app');
+      alert("Metamask must be connected to use the app");
       return;
     }
     try {
-      const accs = await e.request({ method: 'eth_requestAccounts' });
+      const accs = await e.request({ method: "eth_requestAccounts" });
       setAccount(accs[0]);
+      sessionStorage.setItem("address",account)
     } catch (e) {
       console.error(e);
     } finally {
@@ -101,34 +90,28 @@ function App() {
 
   const menuItems = [
     {
-      key: '/',
-      label: (
-        <img
-          src={logo}
-          className="header-logo pointer"
-          alt="logo"
-          onClick={() => navigate("/")}
-        />
-      ),
+      key: "/",
+      label: <img src={xefersLogo} height={35} width={50} />,
       showOnRedirectPage: true,
+      onClick: () => navigate("/create"),
     },
     {
-      key: '/create',
+      key: "/create",
       label: "Create Link",
       onClick: () => navigate("/create"),
     },
     {
-      key: '/history',
-      label: "Link History",
+      key: "/history",
+      label: "View Transaction ",
       onClick: () => navigate("/history"),
     },
     {
-      key: '/ownerlinks',
+      key: "/GetLinkByAddress",
       label: account ? (
-        <span onClick={() => navigate('/ownerlinks')}>Hello: {account}</span>
+        <span onClick={() => navigate("/GetLinkByAddress")}> History: {account ? (account.toString().slice(0,17)) : ""}</span>
       ) : (
         <button
-          className="bg-[#1d2132] text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out"
+          className="bg-[#1d2132] text-[#fff] py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out"
           onClick={login}
           loading={loading}
           disabled={loading}
@@ -138,30 +121,21 @@ function App() {
       ),
       showOnRedirectPage: true,
     },
-    {
-      key: 0,
-      label: (
-        <Badge count={notifications.length || 0}>
-          <BellTwoTone
-            className="notification-bell"
-            onClick={() => setShowNotifications(true)}
-          />
-        </Badge>
-      ),
-    },
+ 
+
     {
       key: 1,
       label: (
         <span>
-          Network:&nbsp;
+          Chain:&nbsp;
           <Select
+            className="font-Ubuntu select-network hover:border-none"
             defaultValue={activeChain.id}
             style={{ width: 175 }}
-            className="select-network"
             onChange={(v) => setActiveChain(CHAIN_OPTIONS[v])}
           >
             {Object.values(CHAIN_OPTIONS).map((chain, i) => (
-              <Option key={i} value={chain.id}>
+              <Option className="hover:border-none" key={i} value={chain.id}>
                 {capitalize(chain.name)}
               </Option>
             ))}
@@ -174,51 +148,58 @@ function App() {
 
   return (
     <div className="App">
-      <Layout className="layout">
-        <Header className="header-menu">
-          <Menu
-            mode="horizontal"
-            selectedKeys={[path]}
-            items={isRedirect ? menuItems.filter(item => item.showOnRedirectPage) : menuItems}
-          />
-        </Header>
-        <Content style={{ padding: "0 50px" }}>
+      <div>
+        <header className="p-4 font-Ubuntu bg-gray-100 flex justify-evenly items-center">
+          <nav className="w-full flex justify-center items-center">
+            <ul className="flex items-center space-x-6">
+              {menuItems.map((item) => (
+                <li
+                  key={item.key}
+                  className="text-[#1d2132] cursor-pointer"
+                  style={{ listStyleType: "none" }}
+                  onClick={item.onClick}
+                >
+                  {item.label}
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </header>
+
+        <div className="" style={{ padding: "0 50px" }}>
           <div className="container">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/ownerlinks" element={<OwnerLinks activeChain={activeChain} account={account} />} />
-              <Route path="/link/:contractAddress" element={<LinkRedirect activeChain={activeChain} account={account} />} />
-              <Route path="/create" element={<CreateRequest activeChain={activeChain} account={account} />} />
-              <Route path="/history" element={<History activeChain={activeChain} />} />
-              <Route path="/about" element={<About />} />
+              <Route
+                path="/GetLinkByAddress"
+                element={
+                  <GetLinkByAddress activeChain={activeChain} account={account} />
+                }
+              />
+              <Route
+                path="/link/:contractAddress"
+                element={
+                  <Link activeChain={activeChain} account={account} />
+                }
+              />
+              <Route
+                path="/create"
+                element={
+                  <CreateRequest activeChain={activeChain} account={account} />
+                }
+              />
+              <Route
+                path="/history"
+                element={<History activeChain={activeChain} />}
+              />
+              <Route  />
             </Routes>
           </div>
-        </Content>
-        <Footer style={{ textAlign: "center" }}>
-          {APP_NAME} &copy;{new Date().getFullYear()} - {APP_DESC} -{" "}
-          <a href="#" onClick={(e) => {
-            e.preventDefault();
-            navigate("/about");
-          }}>
-            About
-          </a>
-        </Footer>
-      </Layout>
-
-      <Modal
-        title={`Notifications (${notifications.length})`}
-        bodyStyle={{ overflowY: 'scroll' }}
-        open={showNotifications}
-        onOk={() => setShowNotifications(false)}
-        onCancel={() => setShowNotifications(false)}
-        cancelButtonProps={{ style: { display: 'none' } }}
-      >
-        <div style={{ overflowY: 'scroll', maxHeight: '500px' }}>
-          {notifications.map((n, i) => (
-            <Notification key={i} notification={n} />
-          ))}
         </div>
-      </Modal>
+      
+      </div>
+
+
     </div>
   );
 }

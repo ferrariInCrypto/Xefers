@@ -1,4 +1,4 @@
-export const Xefers_CONTRACT = {
+export const XEFERS_CONTRACT = {
   "_format": "hh-sol-artifact-1",
   "contractName": "LinkContract",
   "sourceName": "contracts/LinkContract.sol",

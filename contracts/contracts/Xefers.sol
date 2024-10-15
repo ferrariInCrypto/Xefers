@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-import "hardhat/console.sol";
+
 
 /// @title Xefers Referral Contract
 /// @dev A contract that handles tracking referrals for a specific Xefers link. 
 /// It rewards users for successful referrals and stores metadata about the Xefers campaign.
-contract XefersContract {
+contract Xefers {
     
     /// @notice The total number of successful referrals
     uint256 public referralCount;
