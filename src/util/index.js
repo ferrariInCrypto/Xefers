@@ -1,7 +1,7 @@
 import { DEFAULT_CHAIN, IPFS_BASE_URL } from "./constants";
 
 export const ipfsUrl = (cid, fileName) => {
-  // let url = `https://ipfs.io/ipfs/${cid}`;
+ 
   let url = `${IPFS_BASE_URL}/${cid}`;
   if (fileName) {
     return `${url}/${fileName}`;

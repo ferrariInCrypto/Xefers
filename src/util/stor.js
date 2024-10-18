@@ -4,8 +4,9 @@ import { Web3Storage } from "web3.storage/dist/bundle.esm.min.js"; // webpack 4
 import { IPFS_BASE_URL } from "./constants";
 
 const API_KEY = process.env.REACT_APP_STORAGE_KEY;
+
 if (!API_KEY) {
-  alert('REACT_APP_STORAGE_KEY environment variable is required')
+  alert('')
 }
 
 function getAccessToken() {
@@ -46,7 +47,6 @@ export async function retrieveFiles(cid) {
     throw new Error(`failed to get ${cid}`);
   }
 
-  // request succeeded! do something with the response object here...
 
   return res;
 }

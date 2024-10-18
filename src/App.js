@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import { Layout, Select, Modal } from "antd";
+import { Layout, Select } from "antd";
 import xefersLogo from "./assets/xefersLogo.png";
-
 import CreateRequest from "./components/CreateRequest";
 import History from "./components/History";
 import Home from "./components/Home";
@@ -21,7 +20,7 @@ import { capitalize, toHexString } from "./util";
 
 import "./App.css";
 
-const { Header, Content, Footer } = Layout;
+
 const { Option } = Select;
 
 function App() {

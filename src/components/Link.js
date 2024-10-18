@@ -9,14 +9,12 @@ import {
 import { getRpcError } from "../util";
 
 
-// This page should page a contractAddress path parameter enable a web3 transaction to credit a user with a link referral,
-// and then redirect to url stored in state
+
 
 export default function LinkRedirect({ activeChain, account, provider }) {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = useState();
   const [data, setData] = useState({});
-  const [showAbout, setShowAbout] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const { contractAddress } = useParams();
