@@ -1,142 +1,151 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.27;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-/// @title Xefers Referral Contract
-/// @dev A contract that handles tracking referrals for a specific Xefers link. 
-/// It rewards users for successful referrals and stores metadata about the Xefers campaign.
+/// @title Xefers Referral Contract (BTTC Compatible)
+/// @dev A contract that handles tracking referrals and rewards in both ETH and ERC-20 tokens.
 contract Xefers {
-    
-    /// @notice The total number of successful referrals
-    uint256 public referralCount;
 
-    /// @notice Mapping to track if an address has been referred
-    mapping(address => bool) public hasBeenReferred;
+    /// @notice The total number of successful referrals for each campaign
+    mapping(uint256 => uint256) public referralCount;
+
+    /// @notice Mapping to track if an address has been referred per campaign
+    mapping(uint256 => mapping(address => bool)) public hasBeenReferred;
 
     /// @notice Metadata structure to store details about a Xefers campaign
     struct CampaignMetadata {
-        string title;          // Title of the Xefers campaign
-        string redirectUrl;    // URL to redirect to after a referral
-        address owner;         // The owner/creator of the campaign
+        string title;           // Title of the Xefers campaign
+        string redirectUrl;     // URL to redirect to after a referral
+        address owner;          // The owner/creator of the campaign
         uint256 referralReward; // Reward in wei (ETH) for successful referrals
+        IERC20 token;           // ERC-20 token for rewards (if used)
+        uint256 tokenReward;    // Reward in token amount (if applicable)
     }
 
-    /// @notice The metadata for the current Xefers campaign
-    CampaignMetadata public campaignMetadata;
+    /// @notice Campaigns metadata for multiple campaigns
+    mapping(uint256 => CampaignMetadata) public campaigns;
 
-    /// @notice Emitted when a referral is successful
-    /// @param referrer The address of the person who referred
-    /// @param referral The address of the person being referred
-    /// @param redirectUrl The URL that the referred person is redirected to
-    event ReferralSuccessful(address indexed referrer, address indexed referral, string redirectUrl);
+    /// @notice Event emitted when a referral is successful
+    event ReferralSuccessful(uint256 indexed campaignId, address indexed referrer, address indexed referral, string redirectUrl);
 
-    /// @param _title The title of the Xefers campaign
-    /// @param _referralReward The amount of ETH (in wei) to be rewarded for each successful referral
-    /// @param _redirectUrl The URL where the referred users will be redirected
-    constructor(
+    /// @notice Event emitted when the owner withdraws tokens or ETH
+    event FundsWithdrawn(uint256 indexed campaignId, address owner, uint256 amount, address token);
+
+    /// @notice Create a new referral campaign with ETH and/or token rewards
+    /// @param campaignId The ID for the campaign
+    /// @param _title The title of the campaign
+    /// @param _referralReward The ETH reward (in wei) for each successful referral
+    /// @param _token The address of the ERC-20 token to be used (set to address(0) if not applicable)
+    /// @param _tokenReward The reward in tokens (if applicable)
+    /// @param _redirectUrl The URL for the referrals to be redirected
+
+    function createCampaign(
+        uint256 campaignId,
         string memory _title,
         uint256 _referralReward,
+        IERC20 _token,
+        uint256 _tokenReward,
         string memory _redirectUrl
-    ) {
-        referralCount = 0;
-        campaignMetadata = CampaignMetadata(
-            _title,
-            _redirectUrl,
-            msg.sender,
-            _referralReward
-        );
+    ) external {
+        require(campaigns[campaignId].owner == address(0), "Campaign ID already exists");
+        
+        campaigns[campaignId] = CampaignMetadata({
+            title: _title,
+            redirectUrl: _redirectUrl,
+            owner: msg.sender,
+            referralReward: _referralReward,
+            token: _token,
+            tokenReward: _tokenReward
+        });
     }
 
-    /// @notice Allows a user to refer someone and claim a reward (if applicable)
-    /// @dev Ensures the user has not been referred before and pays out the reward.
-    function makeReferral() external {
-        require(!hasBeenReferred[msg.sender], "User has already been referred");
+    /// @notice Refer someone and claim a reward (ETH or tokens)
+    /// @param campaignId The ID of the campaign in which to make the referral
+    function makeReferral(uint256 campaignId) external {
+        require(!hasBeenReferred[campaignId][msg.sender], "User has already been referred for this campaign");
         
+        CampaignMetadata memory campaign = campaigns[campaignId];
+
         // Mark the sender as referred
-        hasBeenReferred[msg.sender] = true;
+        hasBeenReferred[campaignId][msg.sender] = true;
 
         // Increment the referral count
-        referralCount += 1;
+        referralCount[campaignId] += 1;
 
-        uint256 reward = campaignMetadata.referralReward;
+        uint256 ethReward = campaign.referralReward;
+        uint256 tokenReward = campaign.tokenReward;
 
-        // If a reward exists, pay it out to the sender
-        if (reward > 0) {
-            require(address(this).balance >= reward, "Insufficient contract balance for reward");
-            payable(msg.sender).transfer(reward);
+        // Pay out ETH reward
+        if (ethReward > 0) {
+            require(address(this).balance >= ethReward, "Insufficient contract balance for ETH reward");
+            payable(msg.sender).transfer(ethReward);
         }
 
-        // Emit an event to signify the successful referral
-        emit ReferralSuccessful(campaignMetadata.owner, msg.sender, campaignMetadata.redirectUrl);
+        // Pay out Token reward
+        if (tokenReward > 0 && address(campaign.token) != address(0)) {
+            require(campaign.token.balanceOf(address(this)) >= tokenReward, "Insufficient token balance for reward");
+            campaign.token.transfer(msg.sender, tokenReward);
+        }
+
+        // Emit event for successful referral
+        emit ReferralSuccessful(campaignId, campaign.owner, msg.sender, campaign.redirectUrl);
     }
 
-    /// @notice Returns the campaign metadata
-    /// @return The campaign metadata, including title, redirect URL, owner, and reward amount
-    function getCampaignMetadata() external view returns (CampaignMetadata memory) {
-        return campaignMetadata;
+    /// @notice Withdraw contract funds (ETH or tokens)
+    /// @param campaignId The ID of the campaign to withdraw from
+    /// @param _amount The amount to withdraw in ETH or tokens
+    /// @param _token The token address (use address(0) for ETH)
+
+    function withdrawFunds(uint256 campaignId, uint256 _amount, address _token) external onlyOwner(campaignId) {
+        if (_token == address(0)) {
+            // Withdraw ETH
+            require(address(this).balance >= _amount, "Insufficient ETH balance");
+            payable(msg.sender).transfer(_amount);
+        } else {
+            // Withdraw ERC-20 tokens
+            IERC20 token = IERC20(_token);
+            require(token.balanceOf(address(this)) >= _amount, "Insufficient token balance");
+            token.transfer(msg.sender, _amount);
+        }
+        emit FundsWithdrawn(campaignId, msg.sender, _amount, _token);
     }
 
-    /// @notice Checks if an address has been referred
-    /// @param _address The address to check
-    /// @return Boolean indicating whether the address has been referred
-    function hasReferred(address _address) external view returns (bool) {
-        return hasBeenReferred[_address];
-    }
-
-    /// @notice Updates the redirect URL for the campaign
-    /// @dev Only the campaign owner can update the redirect URL
+    /// @notice Updates the redirect URL for a campaign
+    /// @dev Only the campaign owner can update
+    /// @param campaignId The ID of the campaign
     /// @param _redirectUrl The new URL to set
-    function updateRedirectUrl(string memory _redirectUrl) external onlyOwner {
-        campaignMetadata.redirectUrl = _redirectUrl;
+
+    function updateRedirectUrl(uint256 campaignId, string memory _redirectUrl) external onlyOwner(campaignId) {
+        campaigns[campaignId].redirectUrl = _redirectUrl;
     }
 
-    /// @notice Updates the referral reward for the campaign
-    /// @dev Only the campaign owner can update the reward
-    /// @param _referralReward The new referral reward in wei (ETH)
-    function updateReferralReward(uint256 _referralReward) external onlyOwner {
-        campaignMetadata.referralReward = _referralReward;
+    /// @notice Updates the referral reward (ETH and/or tokens) for a campaign
+    /// @param campaignId The ID of the campaign
+    /// @param _referralReward The new referral reward in ETH (wei)
+    /// @param _tokenReward The new referral reward in tokens (if applicable)
+
+    function updateReferralRewards(uint256 campaignId, uint256 _referralReward, uint256 _tokenReward) external onlyOwner(campaignId) {
+        campaigns[campaignId].referralReward = _referralReward;
+        campaigns[campaignId].tokenReward = _tokenReward;
     }
 
-    /// @notice Updates the title of the campaign
-    /// @dev Only the campaign owner can update the title
-    /// @param _title The new title for the campaign
-    function updateTitle(string memory _title) external onlyOwner {
-        campaignMetadata.title = _title;
+    /// @notice Transfer ownership of the campaign
+    /// @param campaignId The ID of the campaign
+    /// @param newOwner The address of the new owner
+
+    function transferOwnership(uint256 campaignId, address newOwner) external onlyOwner(campaignId) {
+        require(newOwner != address(0), "New owner cannot be zero address");
+        campaigns[campaignId].owner = newOwner;
     }
 
-    /// @notice Returns the campaign title
-    /// @return The title of the Xefers campaign
-    function fetchTitle() external view returns (string memory) {
-        return campaignMetadata.title;
-    }
-
-    /// @notice Returns the redirect URL of the campaign
-    /// @return The URL to which referrals will be redirected
-    function fetchRedirectUrl() external view returns (string memory) {
-        return campaignMetadata.redirectUrl;
-    }
-
-    /// @notice Returns the owner of the campaign
-    /// @return The address of the campaign owner
-    function fetchOwner() external view returns (address) {
-        return campaignMetadata.owner;
-    }
-
-    /// @notice Returns the total number of successful referrals
-    /// @return The number of referrals made in the campaign
-    function fetchReferralCount() external view returns (uint256) {
-        return referralCount;
-    }
-
-    /// @notice Returns the current referral reward
-    /// @return The amount of ETH (in wei) rewarded for each referral
-    function fetchReferralReward() external view returns (uint256) {
-        return campaignMetadata.referralReward;
-    }
-
-    /// @notice Ensures that only the owner of the campaign can call certain functions
-    modifier onlyOwner() {
-        require(msg.sender == campaignMetadata.owner, "Only the campaign owner can call this function");
+    /// @notice Modifier to ensure only the campaign owner can call certain functions
+    
+    modifier onlyOwner(uint256 campaignId) {
+        require(msg.sender == campaigns[campaignId].owner, "Only campaign owner can call this function");
         _;
     }
+
+    /// @notice Fallback function to receive ETH
+    receive() external payable {}
 }
