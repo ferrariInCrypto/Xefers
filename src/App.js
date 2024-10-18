@@ -58,30 +58,37 @@ function App() {
     setLoading(true);
     const e = window.ethereum;
     if (!e) {
-      alert("Metamask must be connected to use the app");
-      return;
+        alert("MetaMask must be connected to use the app");
+        return;
     }
     try {
-      const accs = await e.request({ method: "eth_requestAccounts" });
-      setAccount(accs[0]);
-      sessionStorage.setItem("address",account)
-    } catch (e) {
-      console.error(e);
+        const accs = await e.request({ method: "eth_requestAccounts" });
+        setAccount(accs[0]);
+        sessionStorage.setItem("address", accs[0]); // Use accs[0] instead of account
+    } catch (err) {
+        console.error(err);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
-  const checkConnected = async () => {
+const checkConnected = async () => {
     const e = window.ethereum;
     if (!e) {
-      return;
+        return;
     }
-    const connected = e.isConnected();
-    if (connected) {
-      await login();
+    try {
+        const accounts = await e.request({ method: "eth_accounts" }); // Get accounts
+        if (accounts.length > 0) {
+            setAccount(accounts[0]); // Set account if connected
+        } else {
+            await login(); // Prompt user to connect if no accounts
+        }
+    } catch (err) {
+        console.error(err);
     }
-  };
+};
+
 
   useEffect(() => {
     checkConnected();
@@ -107,7 +114,10 @@ function App() {
     {
       key: "/GetLinkByAddress",
       label: account ? (
-        <span onClick={() => navigate("/GetLinkByAddress")}> History: {account ? (account.toString().slice(0,17)) : ""}</span>
+        <span onClick={() => navigate("/GetLinkByAddress")}>
+        History: {account ? (account.toString().slice(0, 14) + '...' + account.toString().slice(-4)) : ""}
+      </span>
+      
       ) : (
         <button
           className="bg-[#1d2132] text-[#fff] py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out"

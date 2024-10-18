@@ -1,4 +1,4 @@
-export const COVALENT_KEY = process.env.REACT_APP_COVALENT_KEY; // covalent api key
+export const COVALENT_KEY = 'cqt_rQTbfTddQGthJHxXCbCxrHBcPvTX'; // covalent api key
 export const POLYBASE_NAMESPACE = process.env.REACT_APP_POLYBASE_NAMESPACE || "pk/0xbb44be3b8e07ed240e9144acfa4760f872ea5282b86647e678b505ffc2192b8cb5462e4624f2b1f363b6ad91b23ad7c3b99bf97450354725273cd486c1898606/zklinks"
 export const APP_NAME = "Xefers";
 export const APP_DESC = "Network referral link tracking"
@@ -9,8 +9,6 @@ export const IPFS_BASE_URL = "https://w3s.link/ipfs"
 
 //chain
 
-export const DEFAULT_CHAIN_ID = 1029;
-export const DEFAULT_CHAIN = CHAIN_OPTIONS[DEFAULT_CHAIN_ID]
 
 export const CHAIN_OPTIONS = {
   1029:
@@ -25,6 +23,9 @@ export const CHAIN_OPTIONS = {
 
 };
 
+
+export const DEFAULT_CHAIN_ID = 1029;
+export const DEFAULT_CHAIN = CHAIN_OPTIONS[DEFAULT_CHAIN_ID]
 
 //Example Forms
 
@@ -42,7 +43,7 @@ export const CREATE_STEPS = [
   },
   {
     title: "Generate Your Links",
-    description: "You need to authorize the creation request for the 'LinkContract' xefer."
+    description: "You need to authorize the creation request for the 'Xefer' contract."
   },
   {
     title: "Await URL Creation",

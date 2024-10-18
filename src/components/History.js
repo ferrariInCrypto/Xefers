@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Input, Table } from "antd";
-import { getTransactions } from "../util/covalentApi";
+import { getTransactions } from "../util/api";
 import { abbreviate, col, getDateStringFromTimestamp } from "../util";
 import { LineChart } from "react-chartkick";
 
@@ -13,7 +13,7 @@ const COLUMNS = [
 ];
 
 function History({ activeChain }) {
-  const [address, setAddress] = useState(sessionStorage.getItem("address"));
+  const [address, setAddress] = useState("0x2FC4C46cfe5c355777d2Adcda7251C0797b5AfFB");
   const [loading, setLoading] = useState();
   const [data, setData] = useState();
 
@@ -29,9 +29,13 @@ function History({ activeChain }) {
 
     setLoading(true);
     try {
-      const res = await getTransactions(activeChain.id, address);
-      setData(res.data.data.items);
-      console.log(data);
+      alert("This feature would be available in future")
+      return
+      // const res = await getTransactions(activeChain.id, '0x2FC4C46cfe5c355777d2Adcda7251C0797b5AfFB');
+      
+      // console.log(res)
+      // setData(res.data.data.items);
+      // console.log(data);
     } catch (e) {
       console.error(e);
       alert("error getting signdata" + e);
@@ -43,9 +47,7 @@ function History({ activeChain }) {
   return (
     <div>
       <p>
-      This page allows you to search for Xefers transactions associated with a
-        &nbsp;
-        {activeChain.name} address .
+      Enter the BitTorrent Chain Donau address in the input field and search for Xefers transactions associated with that address.
       </p>
       <Input
         value={address}
@@ -77,7 +79,7 @@ function History({ activeChain }) {
         </a>
       )}
       <br />
-      <hr />
+   
       {data && (
         <div>
           <h1>Referral Summary</h1>

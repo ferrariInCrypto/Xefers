@@ -33,7 +33,7 @@ export default function OwnerLinks({ account, address, activeChain }) {
         }
     }
 
-    const title = <span>Campaign History of : {account}</span>
+    const title = <span>History of : {account}</span>
 
     return (<div>
         <div className='centered'>

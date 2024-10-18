@@ -16,9 +16,9 @@ import {
   isValidUrl,
 } from "../util";
 import { CREATE_STEPS, EXAMPLE_FORM } from "../util/constants";
-import { deployContract } from "../contract/Contract";
+import { deployContract } from "../contractInfo/Contract";
 import { createLink } from "../util/polybase";
-import { SmileOutlined } from "@ant-design/icons";
+import logo2 from "../assets/logo2.png"
 
 function CreateRequest({ activeChain, account }) {
   const [data, setData] = useState({ reward: 0, rewardChecked: false });
@@ -119,7 +119,7 @@ function CreateRequest({ activeChain, account }) {
     return (
       <Result
         className="font-Ubuntu"
-        icon={<SmileOutlined />}
+        icon={<img className="mx-auto" src={logo2} height={100} width={100} />}
         title="Your Link request"
         subTitle="Your request for a Xefers link has been generated and is prepared for sharing."
         extra={[
@@ -152,14 +152,16 @@ function CreateRequest({ activeChain, account }) {
         <Col span={24}>
           <Card
             className="create-form font-Ubuntu white boxed"
-            title="Start your own xefer campaign"
+            title={
+              <h1 className="text-xl text-gray-700 font-bold">Start your own xefer campaign</h1> // Adjust text size with text-4xl and add font-bold
+            }
           >
             <br />
             <h1 className="vertical-margin">Set your Campaign title:</h1>
             <Input
               placeholder="The title to your campaign"
               value={data.title}
-              className="font-Ubuntu"
+              className="font-Ubuntu hover:border-black"
               onChange={(e) => updateData("title", e.target.value)}
             />
             <br />
@@ -171,7 +173,7 @@ function CreateRequest({ activeChain, account }) {
               </h1>
             </p>
             <Input
-              className="font-Ubuntu"
+              className="font-Ubuntu hover:border-black"
               placeholder="redirect URL (e.g. https://sunpump.meme)"
               value={data.redirectUrl}
               onChange={(e) => updateData("redirectUrl", e.target.value)}
@@ -179,6 +181,7 @@ function CreateRequest({ activeChain, account }) {
             <br />
             <br />
             <Checkbox
+            className="hover:border-black"
               checked={data.rewardChecked}
               onChange={(e) => updateData("rewardChecked", e.target.checked)}
             />
@@ -205,7 +208,7 @@ function CreateRequest({ activeChain, account }) {
                 className="bg-[#1d2132] text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out"
                 onClick={create}
               >
-                {!error && !result && loading ? "Waiting" : "Create  Contract"}
+                {!error && !result && loading ? "Waiting..." : "Create  Contract"}
               </button>
 
               <button

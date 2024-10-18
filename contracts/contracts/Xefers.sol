@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title Xefers Referral Contract (BTTC Compatible)
 /// @dev A contract that handles tracking referrals and rewards in both ETH and ERC-20 tokens.
+
 contract Xefers {
 
     /// @notice The total number of successful referrals for each campaign
