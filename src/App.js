@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import { Layout, Select } from "antd";
+import { Select } from "antd";
 import xefersLogo from "./assets/xefersLogo.png";
 import CreateRequest from "./components/CreateRequest";
-import History from "./components/History";
+import History from "./components/AddressHistory";
 import Home from "./components/Home";
 import Link from "./components/Link";
 import GetLinkByAddress from "./components/GetLinkByAddress";
@@ -62,7 +62,7 @@ function App() {
     try {
         const accs = await e.request({ method: "eth_requestAccounts" });
         setAccount(accs[0]);
-        sessionStorage.setItem("address", accs[0]); // Use accs[0] instead of account
+        sessionStorage.setItem("address", account); // Use accs[0] instead of account
     } catch (err) {
         console.error(err);
     } finally {

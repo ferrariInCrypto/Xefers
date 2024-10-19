@@ -16,7 +16,7 @@ import {
 } from "../util";
 import { CREATE_STEPS, EXAMPLE_FORM } from "../util/constants";
 import { deployContract } from "../contractInfo/Contract";
-import { createLink } from "../util/polybase";
+import { createLink } from "../util/db";
 import logo2 from "../assets/logo2.png"
 
 function CreateRequest({ activeChain, account }) {

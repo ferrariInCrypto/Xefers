@@ -1,9 +1,4 @@
-export const COVALENT_KEY = 'cqt_rQTbfTddQGthJHxXCbCxrHBcPvTX'; // covalent api key
-export const POLYBASE_NAMESPACE = process.env.REACT_APP_POLYBASE_NAMESPACE || "pk/0xbb44be3b8e07ed240e9144acfa4760f872ea5282b86647e678b505ffc2192b8cb5462e4624f2b1f363b6ad91b23ad7c3b99bf97450354725273cd486c1898606/zklinks"
-export const APP_NAME = "Xefers";
-export const APP_DESC = "Network referral link tracking"
-export const APP_ICON_URL = 'X';
-export const IPFS_BASE_URL = "https://w3s.link/ipfs"
+export const POLYBASE_NAMESPACE =  "pk/0xbb44be3b8e07ed240e9144acfa4760f872ea5282b86647e678b505ffc2192b8cb5462e4624f2b1f363b6ad91b23ad7c3b99bf97450354725273cd486c1898606/zklinks"
 
 
 

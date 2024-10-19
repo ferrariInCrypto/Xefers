@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import {
   getMetadata,
   refer,
-} from "../contract/Contract";
+} from "../contractInfo/Contract";
 import { getRpcError } from "../util";
 
 

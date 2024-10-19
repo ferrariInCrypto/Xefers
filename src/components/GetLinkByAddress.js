@@ -1,7 +1,7 @@
 import { Card } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { getExplorerUrl, getDateStringFromTimestamp } from '../util'
-import { getLinksForOwner } from '../util/polybase'
+import { getLinksForOwner } from '../util/db'
 import { CHAIN_OPTIONS } from '../util/constants'
 
 export default function OwnerLinks({ account, address, activeChain }) {

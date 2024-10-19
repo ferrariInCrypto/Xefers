@@ -5,7 +5,7 @@ const db = new Polybase({
   defaultNamespace: POLYBASE_NAMESPACE
 });
 
-const linkCollection = db.collection(process.env.POLYYBASE_DB);
+const linkCollection = db.collection(process.env.DB_NAMES);
 
 export async function createLink(
   { id, title, redirectUrl, reward, owner, address, chainId }
