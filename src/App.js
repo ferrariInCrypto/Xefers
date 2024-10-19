@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import { Select } from "antd";
+import { Layout, Select } from "antd";
 import xefersLogo from "./assets/xefersLogo.png";
-import CreateRequest from "./components/CreateRequest";
-import History from "./components/AddressHistory";
+import CreateCampaign from "./components/CreateCampaign";
+import History from "./components/ViewHistory";
 import Home from "./components/Home";
 import Link from "./components/Link";
 import GetLinkByAddress from "./components/GetLinkByAddress";
@@ -11,8 +11,8 @@ import GetLinkByAddress from "./components/GetLinkByAddress";
 
 import {
   CHAIN_OPTIONS,
-  DEFAULT_CHAIN,
-} from "./util/constants";
+  CHAIN,
+} from "./util/chainInfo";
 import { capitalize, toHexString } from "./util";
 
 
@@ -24,7 +24,7 @@ const { Option } = Select;
 function App() {
   const [account, setAccount] = useState();
   const [loading, setLoading] = useState(false);
-  const [activeChain, setActiveChain] = useState(DEFAULT_CHAIN);
+  const [activeChain, setActiveChain] = useState(CHAIN);
 
 
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ function App() {
     try {
         const accs = await e.request({ method: "eth_requestAccounts" });
         setAccount(accs[0]);
-        sessionStorage.setItem("address", account); // Use accs[0] instead of account
+        sessionStorage.setItem("address", accs[0]); // Use accs[0] instead of account
     } catch (err) {
         console.error(err);
     } finally {
@@ -136,13 +136,13 @@ const checkConnected = async () => {
         <span>
           Chain:&nbsp;
           <Select
-            className="font-Ubuntu select-network hover:border-none"
+            className="font-Oxanium select-network hover:border-none"
             defaultValue={activeChain.id}
             style={{ width: 175 }}
             onChange={(v) => setActiveChain(CHAIN_OPTIONS[v])}
           >
             {Object.values(CHAIN_OPTIONS).map((chain, i) => (
-              <Option className="hover:border-none" key={i} value={chain.id}>
+              <Option className="hover:border-none font-Oxanium " key={i} value={chain.id}>
                 {capitalize(chain.name)}
               </Option>
             ))}
@@ -156,7 +156,7 @@ const checkConnected = async () => {
   return (
     <div className="App">
       <div>
-        <header className="p-4 font-Ubuntu bg-gray-100 flex justify-evenly items-center">
+        <header className="p-4 font-Oxanium bg-gray-100 flex justify-evenly items-center">
           <nav className="w-full flex justify-center items-center">
             <ul className="flex items-center space-x-6">
               {menuItems.map((item) => (
@@ -192,7 +192,7 @@ const checkConnected = async () => {
               <Route
                 path="/create"
                 element={
-                  <CreateRequest activeChain={activeChain} account={account} />
+                  <CreateCampaign activeChain={activeChain} account={account} />
                 }
               />
               <Route

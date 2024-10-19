@@ -6,7 +6,7 @@ module.exports = {
   theme: {
     extend: {},
     fontFamily: {
-      Ubuntu: ['Ubuntu', 'sans-serif'], // Add your custom font here
+      Oxanium: ['Oxanium', 'sans-serif'], // Add your custom font here
     },
   },
   plugins: [],

@@ -1,11 +1,12 @@
 import { Polybase } from "@polybase/client";
-import { POLYBASE_NAMESPACE } from "./constants";
+import { POLYBASE_NAMESPACE } from "./Urls";
+import {POLYBASE_DB_NAME} from "./Urls"
 
 const db = new Polybase({
   defaultNamespace: POLYBASE_NAMESPACE
 });
 
-const linkCollection = db.collection(process.env.DB_NAMES);
+const linkCollection = db.collection(POLYBASE_DB_NAME);
 
 export async function createLink(
   { id, title, redirectUrl, reward, owner, address, chainId }

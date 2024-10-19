@@ -1,13 +1,4 @@
-import { DEFAULT_CHAIN, IPFS_BASE_URL } from "./constants";
-
-export const ipfsUrl = (cid, fileName) => {
- 
-  let url = `${IPFS_BASE_URL}/${cid}`;
-  if (fileName) {
-    return `${url}/${fileName}`;
-  }
-  return url;
-};
+import { CHAIN} from "./chainInfo";
 
 export const isEmpty = (obj) => {
   return !obj || obj.length === 0;
@@ -33,7 +24,7 @@ export const humanize = (str) => {
 };
 
 export const getExplorerUrl = (activeChain, hash, useTx) =>
-  `${activeChain?.url || DEFAULT_CHAIN.url}${useTx ? "tx/" : "address/"}${hash}`;
+  `${activeChain?.url || CHAIN.url}${useTx ? "tx/" : "address/"}${hash}`;
 
 export const createJsonFile = (signload, fileName) => {
   const st = JSON.stringify(signload);

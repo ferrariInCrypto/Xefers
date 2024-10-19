@@ -1,5 +1,5 @@
 {
-  "name": "Xefers-hardhat-project",
+  "name": "",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.4",
     "@nomiclabs/hardhat-waffle": "^2.0.2",

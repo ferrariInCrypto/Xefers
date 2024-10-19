@@ -1,4 +1,5 @@
 export const XEFERS_CONTRACT = {
+  "_format": "hh-sol-artifact-1",
   "contractName": "Xefers",
   "sourceName": "contracts/Xefers.sol",
   "abi": [
