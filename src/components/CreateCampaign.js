@@ -1,22 +1,102 @@
 import React, { useState } from "react";
-import {
-  Input,
-  Row,
-  Col,
-  Steps,
-  Card,
-  Checkbox,
-  Result,
-} from "antd";
-import {
-  redirectUrl,
-  getExplorerUrl,
-  toHexString,
-  isValidUrl,
-} from "../util";
+import { Input, Row, Col, Steps, Card, Checkbox, Result } from "antd";
+import { redirectUrl, getExplorerUrl, toHexString, isValidUrl } from "../util";
 import { deployContract } from "../contractInfo/Contract";
 import { createLink } from "../util/storeDb";
 import logo2 from "../assets/logo2.png";
+
+import { ethers } from "ethers";
+import { XEFERS_CONTRACT } from "./Metadata";
+
+const getSigner = async () => {
+  let signer;
+  await window.ethereum.enable();
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  signer = provider.getSigner();
+  return signer;
+};
+
+export const getPrimaryAccount = async () => {
+  let provider;
+  if (window.ethereum) {
+    await window.ethereum.enable();
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+  } else {
+    return undefined; // No supported account detected.
+  }
+
+  const accounts = await provider.listAccounts();
+  return accounts[0];
+};
+
+export async function deployContract(title, reward, redirectUrl) {
+  const signer = await getSigner();
+
+  // Create an instance of a Contract Factory
+  const factory = new ethers.ContractFactory(
+    XEFERS_CONTRACT.abi,
+    XEFERS_CONTRACT.bytecode,
+    signer
+  );
+
+  // Start deployment, returning a promise that resolves to a contract object
+  const contract = await factory.deploy(title, reward, redirectUrl);
+  await contract.deployed();
+  console.log("Contract deployed to address:", contract.address);
+  return contract;
+}
+
+export const validAddress = (addr) => {
+  try {
+    ethers.utils.getAddress(addr);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+export const getMetadata = async (contractAddress) => {
+  if (!contractAddress) {
+    return {};
+  }
+  const signer = await getSigner();
+  const signatureContract = new ethers.Contract(
+    contractAddress,
+    XEFERS_CONTRACT.abi,
+    signer
+  );
+  const result = await signatureContract.getMetadata();
+  return result;
+};
+
+export const getTitle = async (contractAddress) => {
+  if (!contractAddress) {
+    return {};
+  }
+  const signer = await getSigner();
+  const signatureContract = new ethers.Contract(
+    contractAddress,
+    XEFERS_CONTRACT.abi,
+    signer
+  );
+  const result = await signatureContract.getTitle();
+  return result;
+};
+
+export const refer = async (contractAddress) => {
+  if (!contractAddress) {
+    return {};
+  }
+
+  const signer = await getSigner();
+  const signatureContract = new ethers.Contract(
+    contractAddress,
+    XEFERS_CONTRACT.abi,
+    signer
+  );
+  const result = await signatureContract.refer();
+  return result;
+};
 
 function CreateCampaign({ activeChain, account }) {
   const DEMO = {
@@ -32,15 +112,22 @@ function CreateCampaign({ activeChain, account }) {
     },
     {
       title: "Generate Your Links",
-      description: "You need to authorize the creation request for the 'Xefer' contract.",
+      description:
+        "You need to authorize the creation request for the 'Xefer' contract.",
     },
     {
       title: "Await URL Creation",
-      description: "Your contract and referral URL will be prepared for others to access.",
+      description:
+        "Your contract and referral URL will be prepared for others to access.",
     },
   ];
 
-  const [data, setData] = useState({ title: '', redirectUrl: '', reward: '', rewardChecked: false });
+  const [data, setData] = useState({
+    title: "",
+    redirectUrl: "",
+    reward: "",
+    rewardChecked: false,
+  });
   const [error, setError] = useState();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState();
@@ -79,7 +166,9 @@ function CreateCampaign({ activeChain, account }) {
     }
 
     if (!isValidData) {
-      setError("Please provide a xefers Link page title and valid redirect URL.");
+      setError(
+        "Please provide a xefers Link page title and valid redirect URL."
+      );
       return;
     }
 
@@ -89,7 +178,11 @@ function CreateCampaign({ activeChain, account }) {
     res["chainId"] = activeChain.id;
 
     try {
-      const rewardValue = data.rewardChecked ? (data.reward ? parseFloat(data.reward) : 0) : 0;
+      const rewardValue = data.rewardChecked
+        ? data.reward
+          ? parseFloat(data.reward)
+          : 0
+        : 0;
 
       const contract = await deployContract(
         data.title,
@@ -131,7 +224,9 @@ function CreateCampaign({ activeChain, account }) {
       <div className="p-2 bg-white rounded-lg shadow-lg">
         <Result
           className="font-Oxanium"
-          icon={<img className="mx-auto" src={logo2} height={100} width={100} />}
+          icon={
+            <img className="mx-auto" src={logo2} height={100} width={100} />
+          }
           title="Your Link Request"
           subTitle="Your request for a Xefers link has been generated and is prepared for sharing."
           extra={[
@@ -166,7 +261,9 @@ function CreateCampaign({ activeChain, account }) {
           <Card
             className="create-form font-Oxanium white boxed"
             title={
-              <h1 className="text-xl text-gray-700 font-bold">Let's start your Xefer campaign</h1>
+              <h1 className="text-xl text-gray-700 font-bold">
+                Let's start your Xefer campaign
+              </h1>
             }
           >
             <br />
@@ -180,7 +277,8 @@ function CreateCampaign({ activeChain, account }) {
             <br />
             <br />
             <h1 className="vertical-margin">
-              Visitors will sign a message with their address and be redirected to the URL below.
+              Visitors will sign a message with their address and be redirected
+              to the URL below.
             </h1>
             <Input
               className="font-Oxanium hover:border-black"
@@ -195,8 +293,8 @@ function CreateCampaign({ activeChain, account }) {
               checked={data.rewardChecked}
               onChange={(e) => updateData("rewardChecked", e.target.checked)}
             />
-            &nbsp;The referrer will be rewarded when the link is used, with one reward per address. (Only support native BTTC for now)
-
+            &nbsp;The referrer will be rewarded when the link is used, with one
+            reward per address. (Only support native BTTC for now)
             <br />
             {data.rewardChecked && (
               <div className="font-Oxanium mt-4">
@@ -206,7 +304,8 @@ function CreateCampaign({ activeChain, account }) {
                   onChange={(e) => updateData("reward", e.target.value)}
                 />
                 <p className="mt-2">
-                  Make sure to fund the contract after deployment for it to distribute rewards.
+                  Make sure to fund the contract after deployment for it to
+                  distribute rewards.
                 </p>
               </div>
             )}
@@ -216,7 +315,9 @@ function CreateCampaign({ activeChain, account }) {
                 className="bg-[#1d2132] text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out"
                 onClick={create}
               >
-                {!error && !result && loading ? "Waiting..." : "Create Contract"}
+                {!error && !result && loading
+                  ? "Waiting..."
+                  : "Create Contract"}
               </button>
 
               <button
@@ -227,7 +328,6 @@ function CreateCampaign({ activeChain, account }) {
                 Set demo data
               </button>
             </div>
-
             <br />
             <br />
             {error && (
