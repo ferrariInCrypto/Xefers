@@ -31,11 +31,13 @@ export default function OwnerLinks({ account, address, activeChain }) {
         }
     }
 
-    const title = <span className="text-gray-700 ">History of: {account}</span>;
+    const title =  <h1 className="font-Oxanium text-gray-700 text-xl">
+    History of : <span className="text-gray-400"> {account.slice(0, 9) + "..." + account.slice(-4)}</span>
+  </h1>
 
     return (
         <div>
-            <div className='centered'>
+            <div className=''>
                 <h1>{title}</h1>
             </div>
 

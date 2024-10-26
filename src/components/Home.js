@@ -7,7 +7,7 @@ const INFO = [
   "2. Transparent and immutable reward distribution system to prevent fraud and manipulation",
   "3. Simple and user-friendly interface for creating and managing referral campaigns",
   "4. Scalable architecture with low transaction fees and high throughput for efficient performance",
-  "5. (In Future) Zero-knowledge proof implementation for user privacy, ensuring no personal data is exposed",
+  "5. Zero-knowledge proof implementation for more enhanced user privacy, ensuring no personal data is exposed",
 ];
 
 function Home(props) {

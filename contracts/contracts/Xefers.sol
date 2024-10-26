@@ -2,11 +2,12 @@
 pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /// @title Xefers Referral Contract (BTTC Compatible)
 /// @dev A contract that handles tracking referrals and rewards in both ETH and ERC-20 tokens.
-
-contract Xefers {
+contract Xefers is Pausable, ReentrancyGuard {
 
     /// @notice The total number of successful referrals for each campaign
     mapping(uint256 => uint256) public referralCount;
@@ -16,12 +17,15 @@ contract Xefers {
 
     /// @notice Metadata structure to store details about a Xefers campaign
     struct CampaignMetadata {
-        string title;           // Title of the Xefers campaign
-        string redirectUrl;     // URL to redirect to after a referral
-        address owner;          // The owner/creator of the campaign
-        uint256 referralReward; // Reward in wei (ETH) for successful referrals
-        IERC20 token;           // ERC-20 token for rewards (if used)
-        uint256 tokenReward;    // Reward in token amount (if applicable)
+        string title;               // Title of the Xefers campaign
+        string redirectUrl;         // URL to redirect to after a referral
+        address owner;              // The owner/creator of the campaign
+        uint256 referralReward;     // Reward in wei (ETH) for successful referrals
+        IERC20 token;               // ERC-20 token for rewards (if used)
+        uint256 tokenReward;        // Reward in token amount (if applicable)
+        uint256 referralCap;        // Maximum number of referrals allowed per campaign
+        uint256 expiryTime;         // Expiration timestamp for the campaign
+        bool isActive;              // Status of the campaign (active or not)
     }
 
     /// @notice Campaigns metadata for multiple campaigns
@@ -33,6 +37,9 @@ contract Xefers {
     /// @notice Event emitted when the owner withdraws tokens or ETH
     event FundsWithdrawn(uint256 indexed campaignId, address owner, uint256 amount, address token);
 
+    /// @notice Event emitted when a campaign is paused or unpaused
+    event CampaignStatusUpdated(uint256 indexed campaignId, bool isActive);
+
     /// @notice Create a new referral campaign with ETH and/or token rewards
     function createCampaign(
         uint256 campaignId,
@@ -40,9 +47,12 @@ contract Xefers {
         uint256 _referralReward,
         IERC20 _token,
         uint256 _tokenReward,
-        string memory _redirectUrl
+        string memory _redirectUrl,
+        uint256 _referralCap,
+        uint256 _expiryTime
     ) external {
         require(campaigns[campaignId].owner == address(0), "Campaign ID already exists");
+        require(_expiryTime > block.timestamp, "Expiry time must be in the future");
         
         campaigns[campaignId] = CampaignMetadata({
             title: _title,
@@ -50,15 +60,20 @@ contract Xefers {
             owner: msg.sender,
             referralReward: _referralReward,
             token: _token,
-            tokenReward: _tokenReward
+            tokenReward: _tokenReward,
+            referralCap: _referralCap,
+            expiryTime: _expiryTime,
+            isActive: true
         });
     }
 
     /// @notice Refer someone and claim a reward (ETH or tokens)
-    function makeReferral(uint256 campaignId) external {
+    function makeReferral(uint256 campaignId) external whenNotPaused nonReentrant {
+        CampaignMetadata storage campaign = campaigns[campaignId];
+        require(campaign.isActive, "Campaign is not active");
+        require(block.timestamp <= campaign.expiryTime, "Campaign has expired");
         require(!hasBeenReferred[campaignId][msg.sender], "User has already been referred for this campaign");
-        
-        CampaignMetadata memory campaign = campaigns[campaignId];
+        require(referralCount[campaignId] < campaign.referralCap, "Referral cap reached for this campaign");
 
         // Mark the sender as referred
         hasBeenReferred[campaignId][msg.sender] = true;
@@ -86,7 +101,7 @@ contract Xefers {
     }
 
     /// @notice Withdraw contract funds (ETH or tokens)
-    function withdrawFunds(uint256 campaignId, uint256 _amount, address _token) external onlyOwner(campaignId) {
+    function withdrawFunds(uint256 campaignId, uint256 _amount, address _token) external onlyOwner(campaignId) nonReentrant {
         if (_token == address(0)) {
             // Withdraw ETH
             require(address(this).balance >= _amount, "Insufficient ETH balance");
@@ -98,6 +113,12 @@ contract Xefers {
             token.transfer(msg.sender, _amount);
         }
         emit FundsWithdrawn(campaignId, msg.sender, _amount, _token);
+    }
+
+    /// @notice Update the active status of a campaign
+    function setCampaignStatus(uint256 campaignId, bool _isActive) external onlyOwner(campaignId) {
+        campaigns[campaignId].isActive = _isActive;
+        emit CampaignStatusUpdated(campaignId, _isActive);
     }
 
     /// @notice Updates the redirect URL for a campaign
@@ -121,6 +142,16 @@ contract Xefers {
     modifier onlyOwner(uint256 campaignId) {
         require(msg.sender == campaigns[campaignId].owner, "Only campaign owner can call this function");
         _;
+    }
+
+    /// @notice Pause the contract in case of emergency
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /// @notice Unpause the contract when the emergency is over
+    function unpause() external onlyOwner {
+        _unpause();
     }
 
     /// @notice Fallback function to receive ETH

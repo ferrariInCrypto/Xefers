@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import { Layout, Select } from "antd";
+import {Select } from "antd";
 import xefersLogo from "./assets/xefersLogo.png";
 import CreateCampaign from "./components/CreateCampaign";
 import History from "./components/ViewHistory";
@@ -106,7 +106,7 @@ const checkConnected = async () => {
     },
     {
       key: "/history",
-      label: "View Transaction ",
+      label: "View Tx Analytics ",
       onClick: () => navigate("/history"),
     },
     {
@@ -156,7 +156,7 @@ const checkConnected = async () => {
   return (
     <div className="App">
       <div>
-        <header className="p-4 font-Oxanium bg-gray-100 flex justify-evenly items-center">
+        <header className="p-4 font-Oxanium bg-[#f4f6fa] flex justify-evenly items-center">
           <nav className="w-full flex justify-center items-center">
             <ul className="flex items-center space-x-6">
               {menuItems.map((item) => (
