@@ -2,10 +2,12 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { Button, Card, Modal, Spin } from "antd";
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { getMetadata, refer } from "../contractInfo/Contract";
-import { getRpcError } from "../util";
+import { XEFERS_CONTRACT } from "../contractInfo/Metadata";
+import { ethers } from "ethers";
+
 
 export default function LinkRedirect({ activeChain, account, provider }) {
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState();
   const [data, setData] = useState({});
@@ -13,7 +15,60 @@ export default function LinkRedirect({ activeChain, account, provider }) {
 
   const { contractAddress } = useParams();
 
-  async function completeReferral() {
+   const getRpcError = (error) => {
+    if (error?.data?.message) {
+      return error.data.message;
+    } else if (error?.reason) { 
+      return error.reason;
+    } else if (error?.message) {
+      return error.message;
+    }
+    return JSON.stringify(error);
+  };
+
+
+  const getSigner = async () => {
+    let signer;
+    await window.ethereum.enable();
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
+    return signer;
+  };
+
+   const getMetadata = async (contractAddress) => {
+    if (!contractAddress) {
+      return {};
+    }
+    const signer = await getSigner();
+    const signatureContract = new ethers.Contract(
+      contractAddress,
+      XEFERS_CONTRACT.abi,
+      signer
+    );
+    const result = await signatureContract.getMetadata();
+    return result;
+  };
+
+
+
+   const refer = async (contractAddress) => {
+    if (!contractAddress) {
+      return {};
+    }
+  
+    const signer = await getSigner();
+    const signatureContract = new ethers.Contract(
+      contractAddress,
+      XEFERS_CONTRACT.abi,
+      signer
+    );
+    const result = await signatureContract.refer();
+    return result;
+  };
+  
+
+
+  async function confirmReferral() {
     if (!contractAddress || !account) {
       return;
     }
@@ -118,7 +173,7 @@ export default function LinkRedirect({ activeChain, account, provider }) {
         <button
           disabled={!redirectUrl || !account || error}
           className="w-full bg-[#1d2132] text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out"
-          onClick={completeReferral}
+          onClick={confirmReferral}
         >
           Continue to page
         </button>

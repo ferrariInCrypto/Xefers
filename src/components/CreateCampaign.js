@@ -1,12 +1,42 @@
-import React, { useState } from "react";
-import { Input, Row, Col, Steps, Card, Checkbox, Result } from "antd";
-import { redirectUrl, getExplorerUrl, toHexString, isValidUrl } from "../util";
-import { deployContract } from "../contractInfo/Contract";
+import React, { useEffect, useState } from "react";
 import { createLink } from "../util/storeDb";
 import logo2 from "../assets/logo2.png";
-
 import { ethers } from "ethers";
-import { XEFERS_CONTRACT } from "./Metadata";
+import { Form } from "antd";
+import { XEFERS_CONTRACT } from "../contractInfo/Metadata";
+import { CHAIN} from "../util/chainInfo"
+import {
+  Input,
+  Row,
+  Col,
+  Steps,
+  Card,
+  Checkbox,
+  Result,
+  Modal,
+} from "antd";
+
+
+
+const getExplorerUrl = (activeChain, hash, useTx) =>
+  `${activeChain?.url || CHAIN.url}${useTx ? "tx/" : "address/"}${hash}`;
+
+const redirectUrl = (address) => `${window.location.origin}/link/${address}`;
+
+export const toHexString = (number) => {
+  return "0x" + Number(number).toString(16);
+}
+
+export const isValidUrl = (link) => {
+  if (!link) return false;
+
+  try {
+    new URL(link);
+    return true;
+  } catch (_) {
+    return false;
+  }
+};
 
 const getSigner = async () => {
   let signer;
@@ -15,6 +45,8 @@ const getSigner = async () => {
   signer = provider.getSigner();
   return signer;
 };
+
+
 
 export const getPrimaryAccount = async () => {
   let provider;
@@ -83,22 +115,12 @@ export const getTitle = async (contractAddress) => {
   return result;
 };
 
-export const refer = async (contractAddress) => {
-  if (!contractAddress) {
-    return {};
-  }
-
-  const signer = await getSigner();
-  const signatureContract = new ethers.Contract(
-    contractAddress,
-    XEFERS_CONTRACT.abi,
-    signer
-  );
-  const result = await signatureContract.refer();
-  return result;
-};
-
 function CreateCampaign({ activeChain, account }) {
+
+
+
+  const [contractAdd, setContract] = useState("");
+
   const DEMO = {
     title: "Marketing Campaign for SunPump.meme",
     redirectUrl: "https://sunpump.meme/",
@@ -107,30 +129,30 @@ function CreateCampaign({ activeChain, account }) {
 
   const STEPS = [
     {
-      title: "Complete the Fields",
-      description: "Provide the necessary information to register your link.",
+      title: "Enter Details",
+      description: "Fill in the link information.",
     },
     {
-      title: "Generate Your Links",
-      description:
-        "You need to authorize the creation request for the 'Xefer' contract.",
+      title: "Authorize Creation",
     },
     {
-      title: "Await URL Creation",
-      description:
-        "Your contract and referral URL will be prepared for others to access.",
+      title: "URL Ready",
+      description: "Your referral link is now accessible.",
     },
   ];
 
   const [data, setData] = useState({
     title: "",
     redirectUrl: "",
-    reward: "",
-    rewardChecked: false,
+    reward: 0,
+    rewardChecked: true,
   });
+
+
   const [error, setError] = useState();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState();
+  const [isModalVisible, setIsModalVisible] = useState(false); // Modal visibility state
 
   const updateData = (key, value) => {
     if (key === "redirectUrl") {
@@ -144,19 +166,18 @@ function CreateCampaign({ activeChain, account }) {
   };
   const isValidData = isValid(data);
 
-  const create = async () => {
-    setError(undefined);
 
+
+  const chainVerifier=async()=>{
     const currentNetwork = await window.ethereum.request({
       method: "eth_chainId",
     });
 
     const targetChainId = toHexString(activeChain.id);
 
-    // Ensure the correct network
     if (targetChainId !== currentNetwork) {
       setError(
-        `Please switch to the ${activeChain.name} (${targetChainId}) network in metamask to create this xefers Link request.`
+        `Please switch to the ${activeChain.name} (${targetChainId}) network in Metamask to create this xefers Link request.`
       );
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
@@ -164,6 +185,17 @@ function CreateCampaign({ activeChain, account }) {
       });
       return;
     }
+  }
+
+
+  useEffect(() => {
+    chainVerifier()
+  },[])
+  const create = async () => {
+
+    setError(undefined);
+
+    chainVerifier()
 
     if (!isValidData) {
       setError(
@@ -178,11 +210,7 @@ function CreateCampaign({ activeChain, account }) {
     res["chainId"] = activeChain.id;
 
     try {
-      const rewardValue = data.rewardChecked
-        ? data.reward
-          ? parseFloat(data.reward)
-          : 0
-        : 0;
+      const rewardValue = data.rewardChecked? data.reward? parseFloat(data.reward): 0 : 0;
 
       const contract = await deployContract(
         data.title,
@@ -191,12 +219,13 @@ function CreateCampaign({ activeChain, account }) {
       );
 
       res["address"] = contract.address;
+      setContract(contract.address);
       res["redirectUrl"] = redirectUrl(contract.address);
       res["contractUrl"] = getExplorerUrl(activeChain, res.address);
 
       setResult(res);
 
-      const result = await createLink({
+      const LinkHash = await createLink({
         id: res.address || new Date().getTime().toString(),
         title: data.title,
         redirectUrl: data.redirectUrl,
@@ -205,7 +234,8 @@ function CreateCampaign({ activeChain, account }) {
         chainId: activeChain.id,
       });
 
-      console.log(result);
+      console.log(LinkHash);
+
     } catch (e) {
       console.error("error creating xefers Link", e);
       setError(e.message || e.toString());
@@ -219,9 +249,58 @@ function CreateCampaign({ activeChain, account }) {
     setData({ ...DEMO });
   };
 
+  const openModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setIsModalVisible(false);
+  };
+
+  const fundContract = async () => {
+    if (typeof window.ethereum !== "undefined") {
+      const signer = await getSigner();
+
+    
+      const contractAddress = contractAdd; // Use the correct contract address
+      const rewardAmount = ethers.utils.parseEther(data.reward);
+
+
+      // Create the transaction object
+      const tx = {
+        to: contractAddress,
+        value: rewardAmount,
+      };
+
+      console.log("Transaction object:", tx);
+
+      const balance = await signer.getBalance();
+      if (balance.lt(rewardAmount)) {
+        console.error("Insufficient funds for this transaction.");
+        return;
+      }
+
+      try {
+        // Send the transaction
+        const transactionResponse = await signer.sendTransaction(tx);
+        console.log("Transaction sent:", transactionResponse);
+
+        const receipt = await transactionResponse.wait();
+
+        console.log("Transaction mined:", receipt);
+
+        closeModal();
+        setContract("");
+      } catch (error) {
+        console.error("Transaction failed:", error);
+      }
+    }
+  };
+
   if (result) {
+
     return (
-      <div className="p-2 bg-white rounded-lg shadow-lg">
+      <div className="p-2 bg-white rounded-lg shadow-lg relative">
         <Result
           className="font-Oxanium"
           icon={
@@ -230,26 +309,76 @@ function CreateCampaign({ activeChain, account }) {
           title="Your Link Request"
           subTitle="Your request for a Xefers link has been generated and is prepared for sharing."
           extra={[
-            <button className="bg-none text-[#283046] py-2 px-4 rounded-md border border-1 border-[#283046] transition-all duration-300 ease-in-out">
-              <a
-                className="hover:text-gray-500"
-                href={result.contractUrl}
-                target="_blank"
-              >
-                View created contract
-              </a>
+            <button
+              onClick={openModal}
+              key="viewContract"
+              className="bg-none text-[#283046] py-2 px-4 rounded-md border border-1 border-[#283046] transition-all duration-300 ease-in-out"
+            >
+              {data.reward > 0 ? (
+                " Fund created contract"
+              ) : (
+                <a
+                  className="hover:text-gray-500"
+                  href={result.contractUrl}
+                  target="_blank"
+                >
+                  View created contract
+                </a>
+              )}
             </button>,
-            <button className="bg-none text-[#283046] py-2 px-4 rounded-md border border-1 border-[#283046] transition-all duration-300 ease-in-out">
-              <a
-                className="hover:text-gray-500"
-                href={result.redirectUrl}
-                target="_blank"
-              >
+            <a
+              href={result.redirectUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <button className="bg-none text-[#283046] py-2 px-4 rounded-md border border-1 border-[#283046] transition-all duration-300 ease-in-out">
                 Share this URL
-              </a>
-            </button>,
+              </button>
+            </a>,
           ]}
         />
+
+        {/* Modal for Viewing Contract */}
+        <Modal
+          visible={isModalVisible}
+          onCancel={closeModal}
+          footer={null}
+          centered
+          width={600}
+          className="modal-custom" // Custom class for modal styling if needed
+        >
+          <div className="mx-auto mt-8 p-4 rounded-md shadow-md  font-Oxanium text-[#1d2132]">
+            <h2 className="text-start text-xl font-semibold mb-4">
+              Fund the contract (Only BTTC )
+            </h2>
+            <Form layout="vertical">
+              <Form.Item
+                name="reward"
+                label={
+                  <span className="font-Oxanium text-[#1d2132]">Reward</span>
+                }
+                rules={[
+                  { required: true, message: "Please enter the reward!" },
+                ]}
+              >
+                <Input
+                  placeholder={data.reward}
+                  className="placeholder-gray-400 border-gray-600 focus:border-gray-400"
+                  value={data.reward}
+                  onChange={(e) => updateData("reward", e.target.value)}
+                />
+              </Form.Item>
+              <Form.Item>
+                <button
+                  className="bg-[#1d2132] font-Oxanium text-[#ffffff] py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out"
+                  onClick={fundContract}
+                >
+                  Confirm
+                </button>
+              </Form.Item>
+            </Form>
+          </div>
+        </Modal>
       </div>
     );
   }
@@ -267,6 +396,15 @@ function CreateCampaign({ activeChain, account }) {
             }
           >
             <br />
+            <h1 className="vertical-margin">Destination Url</h1>
+            <Input
+              className="font-Oxanium hover:border-black"
+              placeholder=" URL (e.g. https://sunpump.meme)"
+              value={data.redirectUrl}
+              onChange={(e) => updateData("redirectUrl", e.target.value)}
+            />
+            <br />
+            <br />
             <h1 className="vertical-margin">Set your Campaign title:</h1>
             <Input
               placeholder="The title to your campaign"
@@ -276,25 +414,12 @@ function CreateCampaign({ activeChain, account }) {
             />
             <br />
             <br />
-            <h1 className="vertical-margin">
-              Visitors will sign a message with their address and be redirected
-              to the URL below.
-            </h1>
-            <Input
-              className="font-Oxanium hover:border-black"
-              placeholder="Redirect URL (e.g. https://sunpump.meme)"
-              value={data.redirectUrl}
-              onChange={(e) => updateData("redirectUrl", e.target.value)}
-            />
-            <br />
-            <br />
             <Checkbox
               className="hover:border-black"
               checked={data.rewardChecked}
               onChange={(e) => updateData("rewardChecked", e.target.checked)}
             />
-            &nbsp;The referrer will be rewarded when the link is used, with one
-            reward per address. (Only support native BTTC for now)
+            &nbsp; Enable referal rewards. (Support BTTC token)
             <br />
             {data.rewardChecked && (
               <div className="font-Oxanium mt-4">
@@ -326,6 +451,7 @@ function CreateCampaign({ activeChain, account }) {
                 onClick={setDemoData}
               >
                 Set demo data
+
               </button>
             </div>
             <br />
@@ -340,7 +466,7 @@ function CreateCampaign({ activeChain, account }) {
       </Row>
       <Row>
         <Col span={24}>
-          <div className="white boxed font-Oxanium">
+          <div className="white text-gray-500 boxed mt-8 font-Oxanium">
             <Steps
               className="font-Oxanium"
               size="small"

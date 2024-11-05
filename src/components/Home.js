@@ -11,9 +11,10 @@ const INFO = [
 ];
 
 function Home(props) {
+  
   const navigate = useNavigate();
 
-  const goToCreate = () => {
+  const navigateTo = () => {
     navigate("/create");
   };
 
@@ -38,7 +39,7 @@ function Home(props) {
 
             <button
               className="bg-[#1d2132] font-Oxanium  text-md text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out"
-              onClick={goToCreate}
+              onClick={navigateTo}
             >
               Create a Campaign
             </button>

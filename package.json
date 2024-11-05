@@ -5,8 +5,9 @@
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^5.0.1",
-    "@polybase/client": "^0.3.38",
+    "@polybase/client": "^0.6.6",
     "@pushprotocol/restapi": "^0.9.0",
+    "@react-icons/all-files": "^4.1.0",
     "@truffle/contract": "^4.4.4",
     "antd": "^5.2.0",
     "axios": "^0.25.0",
@@ -15,6 +16,7 @@
     "react": "^17.0.2",
     "react-chartkick": "^0.5.3",
     "react-dom": "^17.0.2",
+    "react-icons": "^5.3.0",
     "react-rotating-text": "^1.4.1",
     "react-router-dom": "6",
     "react-scripts": "^5.0.1",

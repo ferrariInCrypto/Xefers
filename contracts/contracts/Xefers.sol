@@ -5,42 +5,56 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-/// @title Xefers Referral Contract (BTTC Compatible)
-/// @dev A contract that handles tracking referrals and rewards in both ETH and ERC-20 tokens.
+
+/// @title Verifier for zk-SNARKs
+
+contract Verifier {
+    // This function would typically include the logic for verifying zk-SNARK proofs.
+    // For this example, it's a placeholder.
+    function verifyProof(
+        bytes memory proof,
+        uint256[] memory input
+    ) public pure returns (bool) {
+        // Proof verification logic should be implemented here based on your ZKP setup.
+        // For example, you would verify the proof against the public inputs.
+        return true; // Placeholder return; implement actual verification logic.
+    }
+}
+
+/// @title Xefers Referral Contract (with zk-SNARKs)
 contract Xefers is Pausable, ReentrancyGuard {
-
-    /// @notice The total number of successful referrals for each campaign
-    mapping(uint256 => uint256) public referralCount;
-
-    /// @notice Mapping to track if an address has been referred per campaign
-    mapping(uint256 => mapping(address => bool)) public hasBeenReferred;
-
-    /// @notice Metadata structure to store details about a Xefers campaign
+    // Struct to hold campaign metadata
     struct CampaignMetadata {
-        string title;               // Title of the Xefers campaign
-        string redirectUrl;         // URL to redirect to after a referral
-        address owner;              // The owner/creator of the campaign
-        uint256 referralReward;     // Reward in wei (ETH) for successful referrals
-        IERC20 token;               // ERC-20 token for rewards (if used)
-        uint256 tokenReward;        // Reward in token amount (if applicable)
-        uint256 referralCap;        // Maximum number of referrals allowed per campaign
-        uint256 expiryTime;         // Expiration timestamp for the campaign
-        bool isActive;              // Status of the campaign (active or not)
+        string title;
+        string redirectUrl;
+        address owner;
+        uint256 referralReward;
+        IERC20 token;
+        uint256 tokenReward;
+        uint256 referralCap;
+        uint256 expiryTime;
+        bool isActive;
     }
 
-    /// @notice Campaigns metadata for multiple campaigns
+    // State variables
+    mapping(uint256 => uint256) public referralCount;
+    mapping(uint256 => mapping(address => bool)) public hasBeenReferred;
     mapping(uint256 => CampaignMetadata) public campaigns;
 
-    /// @notice Event emitted when a referral is successful
+    // Reference to the zk-SNARK verifier contract
+    Verifier public verifier;
+
+    // Events
     event ReferralSuccessful(uint256 indexed campaignId, address indexed referrer, address indexed referral, string redirectUrl);
-
-    /// @notice Event emitted when the owner withdraws tokens or ETH
     event FundsWithdrawn(uint256 indexed campaignId, address owner, uint256 amount, address token);
-
-    /// @notice Event emitted when a campaign is paused or unpaused
     event CampaignStatusUpdated(uint256 indexed campaignId, bool isActive);
 
-    /// @notice Create a new referral campaign with ETH and/or token rewards
+    // Constructor
+    constructor(address _verifier) {
+        verifier = Verifier(_verifier);
+    }
+
+    // Function to create a new referral campaign
     function createCampaign(
         uint256 campaignId,
         string memory _title,
@@ -53,7 +67,7 @@ contract Xefers is Pausable, ReentrancyGuard {
     ) external {
         require(campaigns[campaignId].owner == address(0), "Campaign ID already exists");
         require(_expiryTime > block.timestamp, "Expiry time must be in the future");
-        
+
         campaigns[campaignId] = CampaignMetadata({
             title: _title,
             redirectUrl: _redirectUrl,
@@ -67,8 +81,14 @@ contract Xefers is Pausable, ReentrancyGuard {
         });
     }
 
-    /// @notice Refer someone and claim a reward (ETH or tokens)
-    function makeReferral(uint256 campaignId) external whenNotPaused nonReentrant {
+    // Function to make a referral and claim a reward using a zk-SNARK proof
+    function makeReferral(
+        uint256 campaignId,
+        bytes memory proof,
+        uint256[] memory input
+    ) external whenNotPaused nonReentrant {
+        require(verifier.verifyProof(proof, input), "Invalid proof");
+
         CampaignMetadata storage campaign = campaigns[campaignId];
         require(campaign.isActive, "Campaign is not active");
         require(block.timestamp <= campaign.expiryTime, "Campaign has expired");
@@ -81,26 +101,24 @@ contract Xefers is Pausable, ReentrancyGuard {
         // Increment the referral count
         referralCount[campaignId] += 1;
 
+        // Pay out ETH reward if applicable
         uint256 ethReward = campaign.referralReward;
-        uint256 tokenReward = campaign.tokenReward;
-
-        // Pay out ETH reward
         if (ethReward > 0) {
             require(address(this).balance >= ethReward, "Insufficient contract balance for ETH reward");
             payable(msg.sender).transfer(ethReward);
         }
 
-        // Pay out Token reward
+        // Pay out Token reward if applicable
+        uint256 tokenReward = campaign.tokenReward;
         if (tokenReward > 0 && address(campaign.token) != address(0)) {
             require(campaign.token.balanceOf(address(this)) >= tokenReward, "Insufficient token balance for reward");
             campaign.token.transfer(msg.sender, tokenReward);
         }
 
-        // Emit event for successful referral
         emit ReferralSuccessful(campaignId, campaign.owner, msg.sender, campaign.redirectUrl);
     }
 
-    /// @notice Withdraw contract funds (ETH or tokens)
+    // Function to withdraw funds from the contract
     function withdrawFunds(uint256 campaignId, uint256 _amount, address _token) external onlyOwner(campaignId) nonReentrant {
         if (_token == address(0)) {
             // Withdraw ETH
@@ -115,45 +133,45 @@ contract Xefers is Pausable, ReentrancyGuard {
         emit FundsWithdrawn(campaignId, msg.sender, _amount, _token);
     }
 
-    /// @notice Update the active status of a campaign
+    // Function to update campaign status
     function setCampaignStatus(uint256 campaignId, bool _isActive) external onlyOwner(campaignId) {
         campaigns[campaignId].isActive = _isActive;
         emit CampaignStatusUpdated(campaignId, _isActive);
     }
 
-    /// @notice Updates the redirect URL for a campaign
+    // Function to update the redirect URL for a campaign
     function updateRedirectUrl(uint256 campaignId, string memory _redirectUrl) external onlyOwner(campaignId) {
         campaigns[campaignId].redirectUrl = _redirectUrl;
     }
 
-    /// @notice Updates the referral reward (ETH and/or tokens) for a campaign
+    // Function to update the referral rewards for a campaign
     function updateReferralRewards(uint256 campaignId, uint256 _referralReward, uint256 _tokenReward) external onlyOwner(campaignId) {
         campaigns[campaignId].referralReward = _referralReward;
         campaigns[campaignId].tokenReward = _tokenReward;
     }
 
-    /// @notice Transfer ownership of the campaign
+    // Function to transfer ownership of the campaign
     function transferOwnership(uint256 campaignId, address newOwner) external onlyOwner(campaignId) {
         require(newOwner != address(0), "New owner cannot be zero address");
         campaigns[campaignId].owner = newOwner;
     }
 
-    /// @notice Modifier to ensure only the campaign owner can call certain functions
+    // Modifier to ensure only the campaign owner can call certain functions
     modifier onlyOwner(uint256 campaignId) {
         require(msg.sender == campaigns[campaignId].owner, "Only campaign owner can call this function");
         _;
     }
 
-    /// @notice Pause the contract in case of emergency
+    // Function to pause the contract
     function pause() external onlyOwner {
         _pause();
     }
 
-    /// @notice Unpause the contract when the emergency is over
+    // Function to unpause the contract
     function unpause() external onlyOwner {
         _unpause();
     }
 
-    /// @notice Fallback function to receive ETH
+    // Fallback function to receive ETH
     receive() external payable {}
 }
