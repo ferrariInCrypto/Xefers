@@ -24,11 +24,12 @@
   "scripts": {
     "start": "react-scripts start",
     "clear": "rm -rf build node_modules yarn.lock && yarn install",
-    "build": "react-scripts build && cp build/index.html build/200.html",
+ 
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "deploy": "yarn build && surge build/ zklinks.surge.sh" ,
-    "analyze": "react-scripts build && webpack-bundle-analyzer build/static/js/*.js"
+    "analyze": "react-scripts build && webpack-bundle-analyzer build/static/js/*.js" ,
+     "build": "CI=false react-scripts build && cp build/index.html build/200.html"
   },
   "eslintConfig": {
     "extends": [

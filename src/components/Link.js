@@ -123,7 +123,7 @@ export default function LinkRedirect({ activeChain, account, provider }) {
     return <div className="flex justify-center items-center h-screen"><Spin tip="Loading..." /></div>;
   }
 
-  const { redirectUrl, title, owner, reward } = data;
+  const { redirectUrl, title } = data;
   const fullRedirectUrl = `${redirectUrl || ""}?ref=${account}`;
 
   const alreadyReferred = error && error.indexOf("already referred") !== -1;

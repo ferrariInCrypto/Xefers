@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import { Select, Drawer, Button } from "antd";
 import { MenuOutlined } from "@ant-design/icons";
@@ -33,7 +33,7 @@ function App() {
   const [drawerVisible, setDrawerVisible] = useState(false);
 
   const navigate = useNavigate();
-  const location = useLocation();
+
 
   const changeNetwork = async (chainId) => {
     const e = window.ethereum;

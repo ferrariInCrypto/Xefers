@@ -5,7 +5,7 @@ import { ethers } from "ethers";
 import { Form } from "antd";
 import { XEFERS_CONTRACT } from "../contractInfo/Metadata";
 import { CHAIN } from "../util/chainInfo";
-import { Input, Row, Col, Steps, Card, Checkbox, Result, Modal } from "antd";
+import { Input, Row, Col, Card, Checkbox, Result, Modal } from "antd";
 
 const getExplorerUrl = (activeChain, hash, useTx) =>
   `${activeChain?.url || CHAIN.url}${useTx ? "tx/" : "address/"}${hash}`;
@@ -112,19 +112,7 @@ function CreateCampaign({ activeChain, account }) {
     reward: 0,
   };
 
-  const STEPS = [
-    {
-      title: "Enter Details",
-      description: "Fill in the link information.",
-    },
-    {
-      title: "Authorize Creation",
-    },
-    {
-      title: "URL Ready",
-      description: "Your referral link is now accessible.",
-    },
-  ];
+ 
 
   const [data, setData] = useState({
     title: "",
