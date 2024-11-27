@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useState } from "react";
-import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import { Select, Drawer, Button } from "antd";
 import { MenuOutlined } from "@ant-design/icons";
 import xefersLogo from "./assets/xefersLogo.png";
