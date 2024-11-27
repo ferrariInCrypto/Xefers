@@ -1,17 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
-import { Select } from "antd";
+import { Select, Drawer, Button } from "antd";
+import { MenuOutlined } from "@ant-design/icons";
 import xefersLogo from "./assets/xefersLogo.png";
-import CreateCampaign from "./components/CreateCampaign";
-import History from "./components/ViewAnalytics";
-import Home from "./components/Home";
-import Link from "./components/Link";
-import TransactionHistory from "./components/TransactionHistory";
 import { CHAIN_OPTIONS, CHAIN } from "./util/chainInfo";
 
 
-//icons
-
+// Icons
 import { FaLink } from "react-icons/fa6";
 import { SiSimpleanalytics } from "react-icons/si";
 import { TbBrandCampaignmonitor } from "react-icons/tb";
@@ -20,16 +15,22 @@ import "./App.css";
 
 const { Option } = Select;
 
+// Lazy load components
+const CreateCampaign = React.lazy(() => import("./components/CreateCampaign"));
+const History = React.lazy(() => import("./components/ViewAnalytics"));
+const Home = React.lazy(() => import("./components/Home"));
+const Link = React.lazy(() => import("./components/Link"));
+const TransactionHistory = React.lazy(() => import("./components/TransactionHistory"));
+
 function App() {
-
-   const toHexString = (number) => {
+  const toHexString = (number) => {
     return "0x" + Number(number).toString(16);
-  }
-
+  };
 
   const [account, setAccount] = useState();
   const [loading, setLoading] = useState(false);
   const [activeChain, setActiveChain] = useState(CHAIN);
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -96,23 +97,28 @@ function App() {
     {
       key: "/create",
       label: (
-        <div className="flex text-white bg-[#1d2132] cursor-pointer rounded-lg p-4 transition-all duration-300 items-center space-x-2">
-          <FaLink /> {/* Icon for Create Link */}
+        <div className="flex items-center space-x-2">
+          <FaLink />
           <span>Create Link</span>
         </div>
       ),
-      onClick: () => navigate("/create"),
-      isActive: location.pathname === "/create",
+      onClick: () => {
+        setDrawerVisible(false);
+        navigate("/create");
+      },
     },
     {
       key: "/history",
       label: (
         <div className="flex items-center space-x-2">
-          <SiSimpleanalytics /> {/* Icon for Create Link */}
+          <SiSimpleanalytics />
           <span>Analytics</span>
         </div>
       ),
-      onClick: () => navigate("/history"),
+      onClick: () => {
+        setDrawerVisible(false);
+        navigate("/history");
+      },
     },
     {
       key: "/TransactionHistory",
@@ -132,61 +138,49 @@ function App() {
         <button
           className="bg-[#1d2132] text-[#fff] py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out"
           onClick={login}
-          loading={loading}
           disabled={loading}
         >
           Connect Wallet
         </button>
       ),
-      showOnRedirectPage: true,
+      onClick: () => {
+        setDrawerVisible(false);
+        navigate("/TransactionHistory");
+      },
     },
     {
       key: 1,
       label: (
         <span>
-          Chain :&nbsp;
+          Chain:{" "}
           <Select
-            className="font-Oxanium select-network hover:border-none"
             defaultValue={activeChain.id}
-            style={{ width: 175 }}
+            style={{ width: 150 }}
             onChange={(v) => setActiveChain(CHAIN_OPTIONS[v])}
           >
             {Object.values(CHAIN_OPTIONS).map((chain, i) => (
-              <Option
-                className="hover:border-none font-Oxanium"
-                key={i}
-                value={chain.id}
-              >
+              <Option key={i} value={chain.id}>
                 {chain.name}
               </Option>
             ))}
           </Select>
         </span>
       ),
-      showOnRedirectPage: true,
     },
   ];
 
   return (
-    <div className="flex">
-      <div className="w-1/5 h-screen bg-white p-4 border-r border-gray-300">
-        <header className="font-Oxanium mb-4">
-          <div></div>
-          <img src={xefersLogo} className=" " height={35} width={50} />
-          <br />
-          <hr />
-          <br />
-          <br />
-          <nav className="flex flex-col space-y-6">
+    <div className="flex mt-8 flex-col lg:flex-row">
+      {/* Sidebar for Desktop */}
+      <div className="hidden lg:block w-1/5 h-screen bg-white p-4 border-r border-gray-300">
+        <header className="mb-4">
+          <img src={xefersLogo} alt="Logo" height={35} width={50} />
+          <hr className="my-6" />
+          <nav className="flex flex-col space-y-10">
             {menuItems.map((item) => (
               <div
                 key={item.key}
-                className={`text-[#1d2132] cursor-pointer rounded-lg p-2 transition-all duration-300 
-                  ${
-                    item.isActive || item.key === "/create"
-                      ? ""
-                      : "hover:bg-gray-100 p-4"
-                  }`}
+                className="cursor-pointer rounded-lg p-2 hover:bg-gray-100 transition-all"
                 onClick={item.onClick}
               >
                 {item.label}
@@ -196,34 +190,66 @@ function App() {
         </header>
       </div>
 
-      <div className="w-4/5 p-4">
-        <div className="container">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route
-              path="/TransactionHistory"
-              element={
-                <TransactionHistory activeChain={activeChain} account={account} />
-              }
-            />
-            <Route
-              path="/link/:contractAddress"
-              element={<Link activeChain={activeChain} account={account} />}
-            />
-            <Route
-              path="/create"
-              element={
-                <CreateCampaign activeChain={activeChain} account={account} />
-              }
-            />
-            <Route
-              path="/history"
-              element={<History activeChain={activeChain} />}
-            />
-            <Route />
-          </Routes>
-        </div>
+      {/* Drawer for Mobile */}
+      <div className="lg:hidden p-6">
+        <Button
+          className="bg-[#1d2132] text-[#fff] "
+          icon={<MenuOutlined />}
+          onClick={() => setDrawerVisible(true)}
+        >
+   
+       
+        </Button>
+        <Drawer
+          // title={<img src={xefersLogo} alt="Logo" height={35} width={50} />}
+          placement="left"
+          onClose={() => setDrawerVisible(false)}
+          visible={drawerVisible}
+        >
+          <nav className="flex flex-col space-y-6">
+            {menuItems.map((item) => (
+              <div
+                key={item.key}
+                className="cursor-pointer rounded-lg p-2 hover:bg-gray-100 transition-all"
+                onClick={item.onClick}
+              >
+                {item.label}
+              </div>
+            ))}
+          </nav>
+        </Drawer>
       </div>
+
+      {/* Main Content */}
+      <div className="flex-1 p-4">
+      <Suspense fallback={<div>Loading...</div>} >
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route
+            path="/TransactionHistory"
+            element={
+              <TransactionHistory activeChain={activeChain} account={account} />
+            }
+          />
+          <Route
+            path="/link/:contractAddress"
+            element={<Link activeChain={activeChain} account={account} />}
+          />
+          <Route
+            path="/create"
+            element={
+              <CreateCampaign activeChain={activeChain} account={account} />
+            }
+          />
+          <Route
+            path="/history"
+            element={<History activeChain={activeChain} />}
+          />
+        </Routes>
+  
+  </Suspense>
+      </div>
+     
     </div>
   );
 }

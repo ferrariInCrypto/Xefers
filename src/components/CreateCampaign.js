@@ -1,22 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { createLink } from "../util/storeDb";
-import logo2 from "../assets/logo2.png";
+import logo2 from "../assets/xefersLogo.png";
 import { ethers } from "ethers";
 import { Form } from "antd";
 import { XEFERS_CONTRACT } from "../contractInfo/Metadata";
-import { CHAIN} from "../util/chainInfo"
-import {
-  Input,
-  Row,
-  Col,
-  Steps,
-  Card,
-  Checkbox,
-  Result,
-  Modal,
-} from "antd";
-
-
+import { CHAIN } from "../util/chainInfo";
+import { Input, Row, Col, Steps, Card, Checkbox, Result, Modal } from "antd";
 
 const getExplorerUrl = (activeChain, hash, useTx) =>
   `${activeChain?.url || CHAIN.url}${useTx ? "tx/" : "address/"}${hash}`;
@@ -25,7 +14,7 @@ const redirectUrl = (address) => `${window.location.origin}/link/${address}`;
 
 export const toHexString = (number) => {
   return "0x" + Number(number).toString(16);
-}
+};
 
 export const isValidUrl = (link) => {
   if (!link) return false;
@@ -45,8 +34,6 @@ const getSigner = async () => {
   signer = provider.getSigner();
   return signer;
 };
-
-
 
 export const getPrimaryAccount = async () => {
   let provider;
@@ -116,10 +103,8 @@ export const getTitle = async (contractAddress) => {
 };
 
 function CreateCampaign({ activeChain, account }) {
-
-
-
   const [contractAdd, setContract] = useState("");
+  const [buttonState, setbuttonState] = useState("Confirm");
 
   const DEMO = {
     title: "Marketing Campaign for SunPump.meme",
@@ -148,7 +133,6 @@ function CreateCampaign({ activeChain, account }) {
     rewardChecked: true,
   });
 
-
   const [error, setError] = useState();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState();
@@ -166,9 +150,7 @@ function CreateCampaign({ activeChain, account }) {
   };
   const isValidData = isValid(data);
 
-
-
-  const chainVerifier=async()=>{
+  const chainVerifier = async () => {
     const currentNetwork = await window.ethereum.request({
       method: "eth_chainId",
     });
@@ -185,17 +167,15 @@ function CreateCampaign({ activeChain, account }) {
       });
       return;
     }
-  }
-
+  };
 
   useEffect(() => {
-    chainVerifier()
-  },[])
+    chainVerifier();
+  }, []);
   const create = async () => {
-
     setError(undefined);
 
-    chainVerifier()
+    chainVerifier();
 
     if (!isValidData) {
       setError(
@@ -210,7 +190,11 @@ function CreateCampaign({ activeChain, account }) {
     res["chainId"] = activeChain.id;
 
     try {
-      const rewardValue = data.rewardChecked? data.reward? parseFloat(data.reward): 0 : 0;
+      const rewardValue = data.rewardChecked
+        ? data.reward
+          ? parseFloat(data.reward)
+          : 0
+        : 0;
 
       const contract = await deployContract(
         data.title,
@@ -235,7 +219,6 @@ function CreateCampaign({ activeChain, account }) {
       });
 
       console.log(LinkHash);
-
     } catch (e) {
       console.error("error creating xefers Link", e);
       setError(e.message || e.toString());
@@ -259,12 +242,11 @@ function CreateCampaign({ activeChain, account }) {
 
   const fundContract = async () => {
     if (typeof window.ethereum !== "undefined") {
+      setbuttonState("Confirming transaction...");
       const signer = await getSigner();
 
-    
       const contractAddress = contractAdd; // Use the correct contract address
       const rewardAmount = ethers.utils.parseEther(data.reward);
-
 
       // Create the transaction object
       const tx = {
@@ -290,6 +272,7 @@ function CreateCampaign({ activeChain, account }) {
         console.log("Transaction mined:", receipt);
 
         closeModal();
+        setbuttonState("Confirm");
         setContract("");
       } catch (error) {
         console.error("Transaction failed:", error);
@@ -298,13 +281,16 @@ function CreateCampaign({ activeChain, account }) {
   };
 
   if (result) {
-
     return (
-      <div className="p-2 bg-white rounded-lg shadow-lg relative">
+      <div className="p-2 bg-white mx-auto w-full sm:w-[90%] md:w-[70%] lg:w-[60%] rounded-lg shadow-lg relative">
         <Result
-          className="font-Oxanium"
+          className="font-Oxanium text-center"
           icon={
-            <img className="mx-auto" src={logo2} height={100} width={100} />
+            <img
+              className="mx-auto w-20 h-20 sm:w-24 sm:h-24"
+              src={logo2}
+              alt="Logo"
+            />
           }
           title="Your Link Request"
           subTitle="Your request for a Xefers link has been generated and is prepared for sharing."
@@ -312,15 +298,16 @@ function CreateCampaign({ activeChain, account }) {
             <button
               onClick={openModal}
               key="viewContract"
-              className="bg-none text-[#283046] py-2 px-4 rounded-md border border-1 border-[#283046] transition-all duration-300 ease-in-out"
+              className="bg-none text-[#283046] py-2 px-4 rounded-md border border-[#283046] transition-all duration-300 ease-in-out w-full sm:w-auto"
             >
               {data.reward > 0 ? (
-                " Fund created contract"
+                "Fund created contract"
               ) : (
                 <a
                   className="hover:text-gray-500"
                   href={result.contractUrl}
                   target="_blank"
+                  rel="noopener noreferrer"
                 >
                   View created contract
                 </a>
@@ -330,8 +317,9 @@ function CreateCampaign({ activeChain, account }) {
               href={result.redirectUrl}
               target="_blank"
               rel="noopener noreferrer"
+              key="shareURL"
             >
-              <button className="bg-none text-[#283046] py-2 px-4 rounded-md border border-1 border-[#283046] transition-all duration-300 ease-in-out">
+              <button className="bg-none text-[#283046] py-2 px-4 rounded-md border border-[#283046] transition-all duration-300 ease-in-out w-full sm:w-auto mt-2 sm:mt-0">
                 Share this URL
               </button>
             </a>,
@@ -339,46 +327,48 @@ function CreateCampaign({ activeChain, account }) {
         />
 
         {/* Modal for Viewing Contract */}
-        <Modal
-          visible={isModalVisible}
-          onCancel={closeModal}
-          footer={null}
-          centered
-          width={600}
-          className="modal-custom" // Custom class for modal styling if needed
-        >
-          <div className="mx-auto mt-8 p-4 rounded-md shadow-md  font-Oxanium text-[#1d2132]">
-            <h2 className="text-start text-xl font-semibold mb-4">
-              Fund the contract (Only BTTC )
-            </h2>
-            <Form layout="vertical">
-              <Form.Item
-                name="reward"
-                label={
-                  <span className="font-Oxanium text-[#1d2132]">Reward</span>
-                }
-                rules={[
-                  { required: true, message: "Please enter the reward!" },
-                ]}
-              >
-                <Input
-                  placeholder={data.reward}
-                  className="placeholder-gray-400 border-gray-600 focus:border-gray-400"
-                  value={data.reward}
-                  onChange={(e) => updateData("reward", e.target.value)}
-                />
-              </Form.Item>
-              <Form.Item>
-                <button
-                  className="bg-[#1d2132] font-Oxanium text-[#ffffff] py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out"
-                  onClick={fundContract}
+        {data.reward > 0 && (
+          <Modal
+            visible={isModalVisible}
+            onCancel={closeModal}
+            footer={null}
+            centered
+            width={600}
+            className="modal-custom"
+          >
+            <div className="mx-auto mt-8 p-4 rounded-md shadow-md font-Oxanium text-[#1d2132]">
+              <h2 className="text-start text-lg sm:text-xl font-semibold mb-4">
+                Fund the contract (Only supports BTTC token)
+              </h2>
+              <Form layout="vertical">
+                <Form.Item
+                  name="reward"
+                  label={
+                    <span className="font-Oxanium text-[#1d2132]">Reward</span>
+                  }
+                  rules={[
+                    { required: true, message: "Please enter the reward!" },
+                  ]}
                 >
-                  Confirm
-                </button>
-              </Form.Item>
-            </Form>
-          </div>
-        </Modal>
+                  <Input
+                    placeholder={data.reward}
+                    className="placeholder-gray-400 border-gray-600 focus:border-gray-400"
+                    value={data.reward}
+                    onChange={(e) => updateData("reward", e.target.value)}
+                  />
+                </Form.Item>
+                <Form.Item>
+                  <button
+                    className="bg-[#1d2132] font-Oxanium text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#283046] hover:shadow-lg transition-all duration-300 ease-in-out w-full"
+                    onClick={fundContract}
+                  >
+                    {buttonState}
+                  </button>
+                </Form.Item>
+              </Form>
+            </div>
+          </Modal>
+        )}
       </div>
     );
   }
@@ -451,7 +441,6 @@ function CreateCampaign({ activeChain, account }) {
                 onClick={setDemoData}
               >
                 Set demo data
-
               </button>
             </div>
             <br />
@@ -462,18 +451,6 @@ function CreateCampaign({ activeChain, account }) {
               </div>
             )}
           </Card>
-        </Col>
-      </Row>
-      <Row>
-        <Col span={24}>
-          <div className="white text-gray-500 boxed mt-8 font-Oxanium">
-            <Steps
-              className="font-Oxanium"
-              size="small"
-              current={1}
-              items={STEPS}
-            />
-          </div>
         </Col>
       </Row>
     </div>

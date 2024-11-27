@@ -1,18 +1,18 @@
 export const CHAIN_OPTIONS = {
   
-    1029:
+    199:
     {
       
-      name: 'BitTorrent Chain Donau ',
-      rpcUrl: 'https://pre-rpc.bittorrentchain.io/',
+      name: 'BitTorrent Chain Mainnet',
+      rpcUrl: 'https://rpc.bittorrentchain.io',
       symbol: 'BTT',
-      url:"https://testnet.bttcscan.com/",
-      id: 1029
+      url:"https://bttcscan.com/",
+      id: 199
     },
   
   };
   
   
-  export const CHAIN_ID = 1029;
+  export const CHAIN_ID = 199;
   export const CHAIN = CHAIN_OPTIONS[CHAIN_ID]
   

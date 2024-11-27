@@ -1,10 +1,9 @@
 import { Card, Col, Row, Spin } from "antd";
 import React, { useEffect, useState } from "react";
 import { getLinksForOwner } from "../util/storeDb";
-import { CHAIN} from  "../util/chainInfo"
+import { CHAIN } from "../util/chainInfo";
 
-export default function TransactionHistory({ account, address, activeChain }) {
-    
+export default function TransactionHistory({ account, activeChain }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState();
   const [links, setLinks] = useState([]);
@@ -43,44 +42,46 @@ export default function TransactionHistory({ account, address, activeChain }) {
   }
 
   const title = (
-    <h1 className="font-Oxanium text-gray-700 text-xl">
-      History of :{" "}
+    <h1 className="font-Oxanium text-gray-700 text-lg md:text-xl">
+      History of:{" "}
       <span className="text-gray-400">
-        {" "}
         {account.slice(0, 9) + "..." + account.slice(-4)}
       </span>
     </h1>
   );
 
   return (
-    <div>
-      <div className="">
-        <h1>{title}</h1>
-      </div>
+    <div className="p-4">
+      <div className="mb-4">{title}</div>
 
-      <Card className="font-Oxanium mt-8">
+      <Card className="font-Oxanium mt-4">
         {loading && <Spin tip="Loading..." />}
         {!loading && links.length === 0 && <p>No links found.</p>}
         {error && <p className="error-text">{error}</p>}
 
-        <Row gutter={16}>
+        <Row gutter={[16, 16]}>
           {links.map((link, i) => {
             const { data } = link;
             const explorerUrl = getExplorerUrl(activeChain, data.id);
-            // const network = CHAIN_OPTIONS[data.chainId]?.name;
 
             return (
-              <Col span={8} key={i} style={{ marginBottom: "16px" }}>
+              <Col
+                xs={24}
+                sm={12}
+                lg={8}
+                key={i}
+                className="flex justify-center"
+              >
                 <Card
                   title={data.title}
                   bordered={true}
-                  className="transition-transform text-gray-600 font-Oxanium transform hover:-translate-y-1 hover:shadow-lg cursor-pointer"
+                  className="transition-transform text-gray-600 font-Oxanium transform hover:-translate-y-1 hover:shadow-lg cursor-pointer w-full"
                   onClick={() => {
                     console.log("clicked", data);
                     window.open(explorerUrl, "_blank");
                   }}
                 >
-                  <p className="  font-semibold text-gray-500">
+                  <p className="font-semibold text-gray-500">
                     URL:{" "}
                     <a
                       className="text-gray-400"
@@ -93,10 +94,8 @@ export default function TransactionHistory({ account, address, activeChain }) {
                     <br />
                     {!isNaN(data.createdAt) && (
                       <>
-                        {" "}
-                        <span>Timestamp :</span>{" "}
-                        <span className=" text-gray-400">
-                          {" "}
+                        <span>Timestamp:</span>{" "}
+                        <span className="text-gray-400">
                           {getDateStringFromTimestamp(data.createdAt, true)}
                         </span>
                       </>

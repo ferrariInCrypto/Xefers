@@ -22,8 +22,8 @@ function Home(props) {
 
       <Row>
         <Col span={18}>
-          <div className="hero-slogan-section">
-            <div className="mb-8 text-4xl font-Oxanium">
+          <div className="hero-slogan-section ">
+            <div className="mb-8  text-4xl font-Oxanium">
               <h1>Decentralized referral link tracking</h1>
             </div>
 

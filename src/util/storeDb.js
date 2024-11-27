@@ -2,10 +2,10 @@ import { Polybase } from "@polybase/client";
 
 // Initialize the Polybase client and connect to the Xefers collection
 const db = new Polybase({
-  defaultNamespace: "pk/0x7093dfec37a4f0018f5a956c8b96da93f1a25f38e5af60802860b90b33c2ced4bd00f057b215130519fba1b33ea6c2f2a715fb682605e714ea5e7fc78cb9ba39/Xefers",
+  defaultNamespace: "pk/0xbb44be3b8e07ed240e9144acfa4760f872ea5282b86647e678b505ffc2192b8cb5462e4624f2b1f363b6ad91b23ad7c3b99bf97450354725273cd486c1898606/zklinks",
 });
 
-const linkCollection = db.collection("Xefers");
+const linkCollection = db.collection("Zklink");
 
 // Function to create a new link record in the Xefers collection
 export async function createLink({ id, title, redirectUrl, reward, owner, address, chainId }) {
