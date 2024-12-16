@@ -107,13 +107,12 @@ function CreateCampaign({ activeChain, account }) {
   const [buttonState, setbuttonState] = useState("Confirm");
 
   const DEMO = {
-    title: "Marketing Campaign for SunPump.meme",
-    redirectUrl: "https://sunpump.meme/",
+    title: "Marketing Campaign for hedera.com",
+    redirectUrl: "https://hedera.com/",
     reward: 0,
   };
 
  
-
   const [data, setData] = useState({
     title: "",
     redirectUrl: "",
@@ -326,7 +325,7 @@ function CreateCampaign({ activeChain, account }) {
           >
             <div className="mx-auto mt-8 p-4 rounded-md shadow-md font-Oxanium text-[#1d2132]">
               <h2 className="text-start text-lg sm:text-xl font-semibold mb-4">
-                Fund the contract (Only supports BTTC token)
+                Fund the contract (Only supports native token)
               </h2>
               <Form layout="vertical">
                 <Form.Item
@@ -377,7 +376,7 @@ function CreateCampaign({ activeChain, account }) {
             <h1 className="vertical-margin">Destination Url</h1>
             <Input
               className="font-Oxanium hover:border-black"
-              placeholder=" URL (e.g. https://sunpump.meme)"
+              placeholder=" URL (e.g. https://hedera.com)"
               value={data.redirectUrl}
               onChange={(e) => updateData("redirectUrl", e.target.value)}
             />

@@ -27,18 +27,20 @@ function History() {
   };
 
   const getTransactionHistory = async (addr) => {
-    const url = `https://api.bttcscan.com/api?module=account&action=txlist&address=${addr}&startblock=0&endblock=99999999&sort=asc`;
+    const url = `https://previewnet.mirrornode.hedera.com/api/v1/accounts/${addr}`
+ 
 
     try {
       setLoading(true);
       const response = await axios.get(url);
-      if (response.data.result) {
-        setData(response.data.result);
+      console.log(response.data.transactions)
+      if (response.data.transactions) {
+        setData(response.data.transactions);
       } else {
         setData([]);
       }
     } catch (error) {
-      console.error("Error fetching transactions:", error);
+      console.error("Error fetching Hedera transactions:", error);
       setData([]);
     } finally {
       setLoading(false);
@@ -55,8 +57,8 @@ function History() {
 
   const chartData = Object.entries(
     data.reduce((acc, row) => {
-      const timestamp = row.timeStamp;
-      const date = getDateStringFromTimestamp(timestamp * 1000, false);
+      const timestamp = row.consensus_timestamp; // Use correct timestamp field from the API
+      const date = getDateStringFromTimestamp(Number(timestamp) * 1000, false); // Convert properly
       if (!acc[date]) acc[date] = 0;
       acc[date] += 1;
       return acc;
