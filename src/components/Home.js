@@ -3,7 +3,7 @@ import { Row, Col } from "antd";
 import { useNavigate } from "react-router-dom";
 
 const INFO = [
-  "1. Decentralized referral tracking on the BTTC network with smart contract-based reward distribution",
+  "1. Decentralized referral tracking on the Hedera network with smart contract-based reward distribution",
   "2. Transparent and immutable reward distribution system to prevent fraud and manipulation",
   "3. Simple and user-friendly interface for creating and managing referral campaigns",
   "4. Scalable architecture with low transaction fees and high throughput for efficient performance",

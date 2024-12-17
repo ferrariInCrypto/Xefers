@@ -396,12 +396,12 @@ function CreateCampaign({ activeChain, account }) {
               checked={data.rewardChecked}
               onChange={(e) => updateData("rewardChecked", e.target.checked)}
             />
-            &nbsp; Enable referal rewards. (Support BTTC token)
+            &nbsp; Enable referal rewards. (Support HBAR token)
             <br />
             {data.rewardChecked && (
               <div className="font-Oxanium mt-4">
                 <Input
-                  placeholder="Reward amount (in BTT)"
+                  placeholder="Reward amount (in HBAR)"
                   value={data.reward}
                   onChange={(e) => updateData("reward", e.target.value)}
                 />
